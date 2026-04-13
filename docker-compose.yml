@@ -1,0 +1,41 @@
+# Local stack: PostgreSQL + web app on http://localhost:5000
+# First-time DB: docker compose run --rm web python db_init.py
+# Optional seed data: open agent-dashboard and let it POST /api/seed, or call it manually.
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ticket_portal
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ticket_portal"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_USER: postgres
+      DB_PASS: postgres
+      DB_NAME: ticket_portal
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production-docker-secret}
+    volumes:
+      - ticket_uploads:/app/uploads/ticket_attachments
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  ticket_uploads:

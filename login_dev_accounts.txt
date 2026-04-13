@@ -1,0 +1,15 @@
+PerfectDesk 360 — staff login (development reference)
+=====================================================
+
+The login page (login.html) does NOT pre-fill email or password. Fields start
+empty so no default username/password is shown in the UI.
+
+For local development after a fresh DB seed or wipe_data reset, the backend
+typically creates a default manager account (see app.py seed / wipe_data.py):
+
+  Email:    manager@nexus.ent
+  Password: admin
+  Role:     Manager
+
+Use your own directory accounts once real users exist. Do not commit real
+passwords to this file.

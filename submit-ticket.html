@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Support Ticket | PerfectDesk 360</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Navbar Minimal -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom" style="background-color: var(--card-bg) !important;">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#" style="color: var(--primary-color)">
+                <i class="bi bi-headset me-2"></i>PerfectDesk 360
+            </a>
+            <div class="d-flex gap-2">
+                <a href="raise-ticket.html" class="btn btn-outline-secondary btn-sm rounded-pill px-3">All options</a>
+                <a href="view-ticket.html" class="btn btn-outline-secondary btn-sm rounded-pill px-4">View ticket</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="ticket-container">
+            <div class="page-header text-center" id="submitPageHeader">
+                <h2 id="submitPageTitle">Submit a Support Request</h2>
+                <p id="submitPageSubtitle">Please fill out the form below and we'll get back to you as soon as possible.</p>
+            </div>
+
+            <div id="successMessage" class="d-none text-center py-5">
+                <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                <h3 class="mt-3">Ticket Submitted Successfully!</h3>
+                <p class="text-muted">Your ticket reference is <strong id="successTicketId" class="text-primary"></strong>. We will get back to you shortly.</p>
+                <a href="submit-ticket.html" id="submitAnotherLink" class="btn btn-primary mt-3">Submit Another Ticket</a>
+            </div>
+
+            <form id="submitTicketForm">
+                <div class="row g-4">
+                    <div class="col-md-6 form-group">
+                        <label class="form-label" for="tktName" id="tktNameLabel">Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="tktName" placeholder="John Doe" required>
+                    </div>
+                    
+                    <div class="col-md-6 form-group">
+                        <label class="form-label">Email Address <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control" id="tktEmail" placeholder="john@example.com" required>
+                    </div>
+
+                    <div id="unlockAccountFields" class="col-12 d-none">
+                        <div class="border rounded-3 p-3 p-md-4 mb-2 bg-light border-primary border-opacity-25">
+                            <h3 class="h6 fw-bold text-dark mb-3"><i class="bi bi-unlock text-primary me-2"></i>Account to unlock</h3>
+                            <div class="row g-3">
+                                <div class="col-md-6 form-group">
+                                    <label class="form-label" for="tktAccountName">Account name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="tktAccountName" placeholder="e.g. jdoe or user@company.com" autocomplete="username">
+                                    <div class="form-text">Username, sign-in name, or UPN for the <strong>locked</strong> account (not only your contact email).</div>
+                                </div>
+                                <div class="col-md-6 form-group">
+                                    <label class="form-label" for="tktAccountScope">Local or cloud <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="tktAccountScope">
+                                        <option value="" selected disabled>Select one</option>
+                                        <option value="Local">Local (on-premises AD / device login)</option>
+                                        <option value="Cloud">Cloud (Microsoft 365 / Entra ID)</option>
+                                        <option value="Not sure">Not sure</option>
+                                    </select>
+                                    <div class="form-text">Helps IT route the unlock to the right directory.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="passwordResetAccountFields" class="col-12 d-none">
+                        <div class="border rounded-3 p-3 p-md-4 mb-2 bg-light border-warning border-opacity-25">
+                            <h3 class="h6 fw-bold text-dark mb-3"><i class="bi bi-key text-warning me-2"></i>Account for password reset</h3>
+                            <div class="row g-3">
+                                <div class="col-md-6 form-group">
+                                    <label class="form-label" for="tktPwdAccountName">Account name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="tktPwdAccountName" placeholder="e.g. jdoe or user@company.com" autocomplete="username">
+                                    <div class="form-text">Username or UPN for the account that needs a new password.</div>
+                                </div>
+                                <div class="col-md-6 form-group">
+                                    <label class="form-label" for="tktPwdAccountScope">Local or cloud <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="tktPwdAccountScope">
+                                        <option value="" selected disabled>Select one</option>
+                                        <option value="Local">Local (on-premises AD / device login)</option>
+                                        <option value="Cloud">Cloud (Microsoft 365 / Entra ID)</option>
+                                        <option value="Not sure">Not sure</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div id="localAdPasswordFields" class="row g-3 mt-1 d-none">
+                                <div class="col-md-6 form-group">
+                                    <label class="form-label" for="tktLocalNewPwd">New password <span id="pwdLocalRequiredStar" class="text-danger">*</span></label>
+                                    <input type="password" class="form-control" id="tktLocalNewPwd" autocomplete="new-password" maxlength="127">
+                                    <div class="form-text" id="pwdPolicyHint">14+ characters; upper, lower, digit; 1–2 specials only from ! @ # $; must not include your name or account name.</div>
+                                </div>
+                                <div class="col-md-6 form-group">
+                                    <label class="form-label" for="tktLocalNewPwdConfirm">Confirm new password <span id="pwdLocalRequiredStar2" class="text-danger">*</span></label>
+                                    <input type="password" class="form-control" id="tktLocalNewPwdConfirm" autocomplete="new-password" maxlength="127">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12" id="extendedTicketFields">
+                    <div class="row g-4">
+                    <div class="col-12 form-group">
+                        <label class="form-label">CC Emails</label>
+                        <input type="text" class="form-control" id="tktCC" placeholder="Separated by commas (e.g. manager@example.com, it@example.com)">
+                        <div class="form-text text-muted small mt-1">These addresses will receive updates about this ticket.</div>
+                    </div>
+
+                    <div class="col-md-4 form-group">
+                        <label class="form-label">Phone Number</label>
+                        <input type="tel" class="form-control" id="tktPhone" placeholder="+1 (555) 000-0000">
+                    </div>
+
+                    <div class="col-md-4 form-group">
+                        <label class="form-label">Priority</label>
+                        <select class="form-select" id="tktPriority">
+                            <option value="Low">Low</option>
+                            <option value="Medium" selected>Medium</option>
+                            <option value="High">High</option>
+                            <option value="Urgent">Urgent</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4 form-group">
+                        <label class="form-label">Category</label>
+                        <select class="form-select" id="tktCategory">
+                            <option value="Hardware">Hardware</option>
+                            <option value="Software">Software</option>
+                            <option value="Network/Internet">Network/Internet</option>
+                            <option value="Access Request">Access Request</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 form-group">
+                        <label class="form-label">Subject <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="tktSubject" placeholder="Brief summary of the issue" required>
+                    </div>
+
+                    <div class="col-12 form-group">
+                        <label class="form-label">Description <span class="text-danger">*</span></label>
+                        <textarea class="form-control" rows="6" id="tktDesc" placeholder="Please describe your issue in detail..." required></textarea>
+                    </div>
+
+                    <div class="col-12 form-group">
+                        <label class="form-label">Attachments</label>
+                        <div class="file-upload-wrapper" id="dropZone">
+                            <i class="bi bi-cloud-arrow-up file-upload-icon"></i>
+                            <h5>Drag & drop files here</h5>
+                            <p class="text-muted mb-3">or browse from your computer</p>
+                            <input type="file" class="d-none" id="fileInput" multiple onchange="handleFiles(this.files)">
+                            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-4" onclick="document.getElementById('fileInput').click()">Browse Files</button>
+                            <div id="fileList" class="mt-3 text-start px-4"></div>
+                        </div>
+                    </div>
+                    </div>
+                    </div>
+
+                    <div class="col-12 text-end mt-5">
+                        <button type="button" class="btn btn-light px-4 me-2">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send me-2"></i> Submit Ticket
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        window.__submitTicketTemplate = '';
+        /** On-premises AD / DC used for local unlock routing (change if your DC IP changes). */
+        var LOCAL_AD_SERVER_IP = '10.10.10.10';
+
+        var _LOCAL_PWD_ALLOWED = /^[A-Za-z0-9!@#$]+$/;
+
+        function validateLocalAdPasswordPolicy(pw, customerName, accountName) {
+            if (!pw || pw.length < 14) return 'Password must be at least 14 characters.';
+            if (pw.length > 127) return 'Password must be at most 127 characters.';
+            if (pw.indexOf('"') >= 0 || pw.indexOf('\0') >= 0) return 'Password cannot contain double quotes.';
+            if (!_LOCAL_PWD_ALLOWED.test(pw)) return 'Use only letters, digits, and at most two symbols from: ! @ # $';
+            if (!/[A-Z]/.test(pw)) return 'Password must include at least one uppercase letter.';
+            if (!/[a-z]/.test(pw)) return 'Password must include at least one lowercase letter.';
+            if (!/[0-9]/.test(pw)) return 'Password must include at least one digit.';
+            var spec = (pw.match(/[!@#$]/g) || []).length;
+            if (spec < 1 || spec > 2) return 'Include 1 or 2 special characters from ! @ # $ (not more).';
+            var low = pw.toLowerCase();
+            var rawName = (customerName || '').trim();
+            var parts = rawName.split(/\s+/);
+            for (var i = 0; i < parts.length; i++) {
+                var t = parts[i].replace(/^[.,;:\-_]+|[.,;:\-_]+$/g, '');
+                if (t.length >= 3 && low.indexOf(t.toLowerCase()) >= 0) return 'Password must not contain your name.';
+            }
+            var accRaw = (accountName || '').trim();
+            var accKey = accRaw;
+            if (accRaw.indexOf('@') >= 0) accKey = accRaw.split('@')[0].trim();
+            else if (accRaw.indexOf('\\') >= 0) accKey = accRaw.split('\\').pop().trim();
+            if (accKey.length >= 3 && low.indexOf(accKey.toLowerCase()) >= 0) return 'Password must not contain your account name.';
+            return '';
+        }
+
+        function syncPasswordResetExtras() {
+            const scopeEl = document.getElementById('tktPwdAccountScope');
+            const localRow = document.getElementById('localAdPasswordFields');
+            const pw1 = document.getElementById('tktLocalNewPwd');
+            const pw2 = document.getElementById('tktLocalNewPwdConfirm');
+            const star1 = document.getElementById('pwdLocalRequiredStar');
+            const star2 = document.getElementById('pwdLocalRequiredStar2');
+            const hint = document.getElementById('pwdPolicyHint');
+            if (!scopeEl || !localRow) return;
+            const v = (scopeEl.value || '').trim();
+            if (!v) {
+                localRow.classList.add('d-none');
+                if (pw1) { pw1.required = false; pw1.removeAttribute('minlength'); }
+                if (pw2) { pw2.required = false; pw2.removeAttribute('minlength'); }
+                return;
+            }
+            localRow.classList.remove('d-none');
+            if (v === 'Local') {
+                if (pw1) { pw1.required = true; pw1.minLength = 14; }
+                if (pw2) { pw2.required = true; pw2.minLength = 14; }
+                if (star1) star1.classList.remove('d-none');
+                if (star2) star2.classList.remove('d-none');
+                if (hint) {
+                    hint.textContent = 'Required for Local: 14+ characters; upper, lower, digit; 1–2 specials only from ! @ # $; must not include your name or account name. Sent over HTTPS; not stored in the ticket.';
+                }
+            } else {
+                if (pw1) { pw1.required = false; pw1.removeAttribute('minlength'); }
+                if (pw2) { pw2.required = false; pw2.removeAttribute('minlength'); }
+                if (star1) star1.classList.add('d-none');
+                if (star2) star2.classList.add('d-none');
+                if (hint) {
+                    hint.textContent = 'Optional for Cloud: if both fields match, support staff see the password on the ticket when they work it (not shown in your public ticket view).';
+                }
+            }
+        }
+
+        (function applyTemplateFromQuery() {
+            const p = new URLSearchParams(window.location.search);
+            const t = (p.get('template') || '').toLowerCase();
+            window.__submitTicketTemplate = t;
+            const sub = document.getElementById('tktSubject');
+            const desc = document.getElementById('tktDesc');
+            const cat = document.getElementById('tktCategory');
+            if (!sub || !desc || !cat) return;
+            const setIfEmpty = function (el, val) {
+                if (el && val && !(el.value || '').trim()) el.value = val;
+            };
+            if (t === 'unlock') {
+                setIfEmpty(sub, 'Account unlock request');
+                cat.value = 'Access Request';
+                const nameLbl = document.getElementById('tktNameLabel');
+                if (nameLbl) {
+                    nameLbl.innerHTML = 'Customer name <span class="text-danger">*</span>';
+                }
+                document.getElementById('tktName').placeholder = 'Your full name (person requesting the unlock)';
+                const unlockBox = document.getElementById('unlockAccountFields');
+                if (unlockBox) {
+                    unlockBox.classList.remove('d-none');
+                }
+                const acc = document.getElementById('tktAccountName');
+                const scope = document.getElementById('tktAccountScope');
+                if (acc) acc.required = true;
+                if (scope) scope.required = true;
+                const titleEl = document.getElementById('submitPageTitle');
+                const subEl = document.getElementById('submitPageSubtitle');
+                if (titleEl) titleEl.textContent = 'Unlock account';
+                if (subEl) subEl.textContent = 'Enter the customer name, the locked account details, and whether it is local or cloud.';
+                if (!(desc.value || '').trim()) {
+                    desc.placeholder = 'When the lockout started, any error message on screen, last successful sign-in, and urgency for work.';
+                }
+            } else if (t === 'password') {
+                sub.value = 'Password reset request';
+                cat.value = 'Access Request';
+                sub.removeAttribute('required');
+                desc.removeAttribute('required');
+                desc.value = '';
+                const ext = document.getElementById('extendedTicketFields');
+                if (ext) ext.classList.add('d-none');
+                const nameLbl = document.getElementById('tktNameLabel');
+                if (nameLbl) {
+                    nameLbl.innerHTML = 'Customer name <span class="text-danger">*</span>';
+                }
+                document.getElementById('tktName').placeholder = 'Your full name (person requesting the reset)';
+                const pwdBox = document.getElementById('passwordResetAccountFields');
+                if (pwdBox) pwdBox.classList.remove('d-none');
+                const pAcc = document.getElementById('tktPwdAccountName');
+                const pScope = document.getElementById('tktPwdAccountScope');
+                if (pAcc) pAcc.required = true;
+                if (pScope) {
+                    pScope.required = true;
+                    pScope.addEventListener('change', syncPasswordResetExtras);
+                }
+                syncPasswordResetExtras();
+                const titleEl = document.getElementById('submitPageTitle');
+                const subEl = document.getElementById('submitPageSubtitle');
+                if (titleEl) titleEl.textContent = 'Password reset';
+                if (subEl) subEl.textContent = 'Customer name, email, account, and local or cloud. Local: password rules below. Cloud: optional password for staff when assigned.';
+            } else if (t === 'access') {
+                setIfEmpty(sub, 'Access or permissions request');
+                cat.value = 'Access Request';
+                if (!(desc.value || '').trim()) {
+                    desc.placeholder = 'What resource or app you need, business reason, and desired deadline if any.';
+                }
+            } else if (t === 'other') {
+                if (!(desc.value || '').trim()) {
+                    desc.placeholder = 'Describe your request in as much detail as you can.';
+                }
+            }
+        })();
+
+        // Handle file selection
+        function handleFiles(files) {
+            const fileList = document.getElementById('fileList');
+            if (!fileList) return;
+            fileList.innerHTML = ''; // Clear previous
+            if (files.length > 0) {
+                let html = '<ul class="list-group list-group-flush">';
+                for (let i = 0; i < files.length; i++) {
+                    html += `<li class="list-group-item bg-transparent border-0 py-1 text-primary"><i class="bi bi-paperclip me-2"></i>${files[i].name} <span class="text-muted small">(${(files[i].size / 1024).toFixed(1)} KB)</span></li>`;
+                }
+                html += '</ul>';
+                fileList.innerHTML = html;
+            }
+        }
+
+        // Handle drag and drop
+        const dropZone = document.getElementById('dropZone');
+        if (dropZone) {
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = 'var(--primary-color)';
+                dropZone.style.backgroundColor = 'rgba(79, 70, 229, 0.05)';
+            });
+            dropZone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = '#e5e7eb';
+                dropZone.style.backgroundColor = '#fafafa';
+            });
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = '#e5e7eb';
+                dropZone.style.backgroundColor = '#fafafa';
+                if (e.dataTransfer.files.length > 0) {
+                    document.getElementById('fileInput').files = e.dataTransfer.files;
+                    handleFiles(e.dataTransfer.files);
+                }
+            });
+        }
+
+        // Handle submit
+        document.getElementById('submitTicketForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // prevent page reload
+
+            const fileInput = document.getElementById('fileInput');
+            const fd = new FormData();
+            fd.append('name', document.getElementById('tktName').value);
+            fd.append('email', document.getElementById('tktEmail').value);
+            fd.append('cc', document.getElementById('tktCC').value);
+            fd.append('phone', document.getElementById('tktPhone').value);
+            fd.append('priority', document.getElementById('tktPriority').value);
+            fd.append('category', document.getElementById('tktCategory').value);
+
+            let description = (document.getElementById('tktDesc') && document.getElementById('tktDesc').value) || '';
+            let subjectVal = (document.getElementById('tktSubject') && document.getElementById('tktSubject').value) || '';
+            let localUnlockUsername = null;
+            let localResetUsername = null;
+
+            const unlockBox = document.getElementById('unlockAccountFields');
+            const pwdBox = document.getElementById('passwordResetAccountFields');
+
+            if (unlockBox && !unlockBox.classList.contains('d-none')) {
+                const cust = (document.getElementById('tktName').value || '').trim();
+                const accName = (document.getElementById('tktAccountName') && document.getElementById('tktAccountName').value || '').trim();
+                const scopeEl = document.getElementById('tktAccountScope');
+                const scope = scopeEl ? (scopeEl.value || '').trim() : '';
+                if (!accName || !scope) {
+                    alert('Please enter the account name and select Local or Cloud.');
+                    return;
+                }
+                var unlockBlock =
+                    '--- Account unlock ---\n' +
+                    'Customer name: ' + cust + '\n' +
+                    'Account name (username / UPN): ' + accName + '\n' +
+                    'Local or cloud: ' + scope + '\n';
+                if (scope === 'Local') {
+                    localUnlockUsername = accName;
+                    unlockBlock +=
+                        'AD server (on-premises): ' + LOCAL_AD_SERVER_IP + '\n' +
+                        'Action requested: Auto unlock — local AD account username: ' + accName + '\n';
+                }
+                unlockBlock += '\nDetails:\n' + description;
+                description = unlockBlock;
+                subjectVal = document.getElementById('tktSubject').value;
+            } else if (pwdBox && !pwdBox.classList.contains('d-none')) {
+                const cust = (document.getElementById('tktName').value || '').trim();
+                const accName = (document.getElementById('tktPwdAccountName') && document.getElementById('tktPwdAccountName').value || '').trim();
+                const scopeEl = document.getElementById('tktPwdAccountScope');
+                const scope = scopeEl ? (scopeEl.value || '').trim() : '';
+                if (!accName || !scope) {
+                    alert('Please enter the account name and select Local or Cloud.');
+                    return;
+                }
+                var pwdBlock =
+                    '--- Password reset ---\n' +
+                    'Customer name: ' + cust + '\n' +
+                    'Account name (username / UPN): ' + accName + '\n' +
+                    'Local or cloud: ' + scope + '\n';
+                subjectVal = 'Password reset request';
+                if (scope === 'Local') {
+                    const pw = (document.getElementById('tktLocalNewPwd') && document.getElementById('tktLocalNewPwd').value) || '';
+                    const pwc = (document.getElementById('tktLocalNewPwdConfirm') && document.getElementById('tktLocalNewPwdConfirm').value) || '';
+                    if (pw !== pwc) {
+                        alert('New password and confirmation do not match.');
+                        return;
+                    }
+                    const polErr = validateLocalAdPasswordPolicy(pw, cust, accName);
+                    if (polErr) {
+                        alert(polErr);
+                        return;
+                    }
+                    localResetUsername = accName;
+                    pwdBlock +=
+                        'AD server (on-premises): ' + LOCAL_AD_SERVER_IP + '\n' +
+                        'Action requested: Auto password reset — local AD account username: ' + accName + '\n';
+                    fd.append('local_reset_password', pw);
+                    fd.append('local_reset_password_confirm', pwc);
+                } else if (scope === 'Cloud') {
+                    const pw = (document.getElementById('tktLocalNewPwd') && document.getElementById('tktLocalNewPwd').value) || '';
+                    const pwc = (document.getElementById('tktLocalNewPwdConfirm') && document.getElementById('tktLocalNewPwdConfirm').value) || '';
+                    if (pw && pwc && pw === pwc) {
+                        fd.append('cloud_suggested_password', pw);
+                        fd.append('cloud_suggested_password_confirm', pwc);
+                    }
+                }
+                description = pwdBlock;
+            } else {
+                subjectVal = document.getElementById('tktSubject').value;
+                description = document.getElementById('tktDesc').value;
+            }
+
+            fd.append('subject', subjectVal);
+            fd.append('description', description);
+            if (localUnlockUsername) {
+                fd.append('local_ad_auto_unlock', '1');
+                fd.append('local_unlock_username', localUnlockUsername);
+            }
+            if (localResetUsername) {
+                fd.append('local_ad_auto_password_reset', '1');
+                fd.append('local_reset_username', localResetUsername);
+            }
+            if (fileInput && fileInput.files && fileInput.files.length) {
+                for (let i = 0; i < fileInput.files.length; i++) {
+                    fd.append('files', fileInput.files[i]);
+                }
+            }
+
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalBtnHtml = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Submitting...';
+            submitBtn.disabled = true;
+
+            const apiUrl = window.location.protocol === 'file:' ? 'http://127.0.0.1:5000/api/tickets' : '/api/tickets';
+
+            fetch(apiUrl, {
+                method: 'POST',
+                body: fd
+            })
+            .then(async res => {
+                let resp = null;
+                try {
+                    resp = await res.json();
+                } catch (parseErr) {
+                    resp = null;
+                }
+                if (res.ok && resp && resp.success) {
+                    // Show success block, hide form
+                    document.getElementById('submitTicketForm').classList.add('d-none');
+                    document.querySelector('.page-header').classList.add('d-none');
+                    
+                    document.getElementById('successMessage').classList.remove('d-none');
+                    document.getElementById('successTicketId').innerText = resp.ticket_id;
+                    const another = document.getElementById('submitAnotherLink');
+                    if (another) {
+                        const tmpl = window.__submitTicketTemplate;
+                        another.href = tmpl ? ('submit-ticket.html?template=' + encodeURIComponent(tmpl)) : 'submit-ticket.html';
+                    }
+                } else if (res.status === 413) {
+                    alert('Total upload size is too large (max 25 MB). Remove some files and try again.');
+                    submitBtn.innerHTML = originalBtnHtml;
+                    submitBtn.disabled = false;
+                } else {
+                    console.error('Server error', resp || res.status);
+                    const msg = resp && resp.message ? resp.message : 'An error occurred submitting your ticket.';
+                    alert(msg);
+                    submitBtn.innerHTML = originalBtnHtml;
+                    submitBtn.disabled = false;
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Connection error. Please make sure the Flask server is running or try again.');
+                submitBtn.innerHTML = originalBtnHtml;
+                submitBtn.disabled = false;
+            });
+        });
+    </script>
+</body>
+</html>

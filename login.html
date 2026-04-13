@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff login | PerfectDesk 360</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e1e2d 0%, #2d2b42 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            max-width: 400px;
+            width: 100%;
+            padding: 3rem 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .login-title {
+            color: #1e1e2d;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        
+        .form-control {
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+            background-color: white;
+        }
+
+        .btn-login {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-login:hover {
+            background-color: var(--secondary-color);
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card text-center text-md-start">
+        <div class="text-center mb-4">
+            <i class="bi bi-hexagon-fill fs-1 mb-3" style="color: var(--primary-color)"></i>
+            <h3 class="login-title">PerfectDesk 360</h3>
+            <p class="text-muted small">Access your support workspace</p>
+        </div>
+
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div id="loginAlert" class="alert alert-danger d-none small py-2" role="alert"></div>
+            
+            <div class="mb-3">
+                <label class="form-label text-muted small fw-bold text-uppercase" style="letter-spacing: 0.5px;">Email Address</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-person"></i></span>
+                    <input type="email" id="email" name="email" class="form-control border-start-0" placeholder="you@company.com" required autocomplete="email" autocapitalize="none" spellcheck="false">
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <div class="d-flex justify-content-between">
+                    <label class="form-label text-muted small fw-bold text-uppercase" style="letter-spacing: 0.5px;">Password</label>
+                    <a href="#" class="small text-decoration-none text-primary" data-bs-toggle="modal" data-bs-target="#forgotModal" onclick="document.getElementById('forgotEmail').value = (document.getElementById('email').value || '').trim(); document.getElementById('forgotAlert').classList.add('d-none');">Forgot?</a>
+                </div>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-lock"></i></span>
+                    <input type="password" id="password" name="password" class="form-control border-start-0" placeholder="••••••••" required autocomplete="current-password">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-login w-100 mb-3 shadow-sm" id="loginBtn">Secure Login <i class="bi bi-arrow-right ms-2"></i></button>
+            
+            <div class="text-center text-muted small">
+                Not a staff member? <a href="index.html" class="text-decoration-none">Return to Customer Portal</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="modal fade" id="forgotModal" tabindex="-1" aria-labelledby="forgotModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold" id="forgotModalLabel"><i class="bi bi-envelope-at text-primary me-2"></i>Agent password reminder</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pt-2">
+                    <p class="small text-muted mb-3">For <strong>agent</strong> accounts only. If your work email exists in our directory as an active agent, your current password will be sent to that address. Managers should use the manager console or contact IT.</p>
+                    <label class="form-label small fw-semibold text-muted">Work email</label>
+                    <input type="email" class="form-control" id="forgotEmail" placeholder="agent@company.com" autocomplete="email">
+                    <div id="forgotAlert" class="alert d-none small mt-3 mb-0 py-2" role="alert"></div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="forgotSubmitBtn" onclick="submitForgotPassword()">Send password to email</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        async function submitForgotPassword() {
+            const email = (document.getElementById('forgotEmail').value || document.getElementById('email').value || '').trim();
+            const alertEl = document.getElementById('forgotAlert');
+            const btn = document.getElementById('forgotSubmitBtn');
+            if (!email) {
+                alertEl.className = 'alert alert-warning small mt-3 mb-0 py-2';
+                alertEl.textContent = 'Enter your agent email address.';
+                alertEl.classList.remove('d-none');
+                return;
+            }
+            btn.disabled = true;
+            const prev = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
+            const apiUrl = window.location.protocol === 'file:' ? 'http://127.0.0.1:5000/api/forgot-password' : '/api/forgot-password';
+            try {
+                const res = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await res.json().catch(() => ({}));
+                alertEl.className = 'alert alert-info small mt-3 mb-0 py-2';
+                alertEl.textContent = data.message || 'If this email is registered as an active agent, your password has been sent to that inbox.';
+                alertEl.classList.remove('d-none');
+            } catch (e) {
+                alertEl.className = 'alert alert-danger small mt-3 mb-0 py-2';
+                alertEl.textContent = 'Could not reach the server. Ensure the app is running.';
+                alertEl.classList.remove('d-none');
+            }
+            btn.disabled = false;
+            btn.innerHTML = prev;
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const btn = document.getElementById('loginBtn');
+            const alertBox = document.getElementById('loginAlert');
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Authenticating...';
+            alertBox.classList.add('d-none');
+
+            const apiUrl = window.location.protocol === 'file:' ? 'http://127.0.0.1:5000/api/login' : '/api/login';
+            
+            fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const r = (data.role || '').toString().trim();
+                    const roleCanon = /^manager$/i.test(r) ? 'Manager' : 'Agent';
+                    const emailCanon = ((data.email != null ? data.email : email) || '').trim();
+                    localStorage.setItem('nexus_user', JSON.stringify({
+                        name: data.name,
+                        role: roleCanon,
+                        email: emailCanon
+                    }));
+                    if (roleCanon === 'Manager') {
+                        window.location.href = 'manager-dashboard.html';
+                    } else {
+                        window.location.href = 'agent-dashboard.html';
+                    }
+                } else {
+                    alertBox.textContent = data.message || "Invalid credentials. Please try again.";
+                    alertBox.classList.remove('d-none');
+                    btn.disabled = false;
+                    btn.innerHTML = 'Secure Login <i class="bi bi-arrow-right ms-2"></i>';
+                }
+            })
+            .catch(err => {
+                alertBox.textContent = "Server connection lost. Make sure the backend is running.";
+                alertBox.classList.remove('d-none');
+                btn.disabled = false;
+                btn.innerHTML = 'Secure Login <i class="bi bi-arrow-right ms-2"></i>';
+            });
+        }
+    </script>
+</body>
+</html>

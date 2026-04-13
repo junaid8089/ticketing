@@ -1,0 +1,18 @@
+Docker quick reference — ticket_portal
+======================================
+
+Build and run (PostgreSQL + app):
+  docker compose up --build
+
+Initialize database schema (first run only):
+  docker compose run --rm web python db_init.py
+
+Open:
+  http://localhost:5000/
+
+Default DB in compose: postgres / postgres, database ticket_portal, host db.
+
+Set SECRET_KEY for production (env file or host):
+  SECRET_KEY=... docker compose up -d
+
+Mail and AD settings: pass through environment or mount a .env (do not commit .env).

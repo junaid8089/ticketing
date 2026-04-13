@@ -1,0 +1,2977 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Dashboard | PerfectDesk 360</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body.pd-agent-body {
+            background-color: #f1f5f9;
+            margin: 0;
+        }
+
+        .pd-shell {
+            min-height: 100vh;
+        }
+
+        .pd-sidebar-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.45);
+            z-index: 1035;
+        }
+
+        .pd-sidebar-backdrop.show {
+            display: block;
+        }
+
+        .pd-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 272px;
+            z-index: 1040;
+            background: linear-gradient(180deg, #0f172a 0%, #1e1b4b 55%, #172554 100%);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid rgba(148, 163, 184, 0.12);
+            transition: transform 0.28s ease;
+        }
+
+        .pd-sidebar-brand {
+            padding: 1.25rem 1.25rem 1rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .pd-nav-wrap {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.75rem 0 1rem;
+            list-style: none;
+            margin: 0;
+        }
+
+        .pd-nav-wrap .nav-item {
+            padding: 0 0.75rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .pd-nav-link {
+            color: rgba(255, 255, 255, 0.72);
+            padding: 0.65rem 0.9rem;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+            font-size: 0.925rem;
+            text-decoration: none;
+            transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+            border: 1px solid transparent;
+            gap: 0.65rem;
+        }
+
+        .pd-nav-link i {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .pd-nav-link:hover {
+            background: rgba(255, 255, 255, 0.06);
+            color: #fff;
+        }
+
+        .pd-nav-link.active {
+            background: linear-gradient(90deg, rgba(124, 58, 237, 0.38), rgba(124, 58, 237, 0.1));
+            color: #fff;
+            border-color: rgba(167, 139, 250, 0.45);
+            box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.22);
+        }
+
+        .pd-nav-section-label {
+            padding: 0.5rem 1.25rem 0.35rem;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            color: rgba(255, 255, 255, 0.38);
+            text-transform: uppercase;
+        }
+
+        .pd-main {
+            margin-left: 272px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #f1f5f9;
+        }
+
+        .pd-topbar {
+            position: sticky;
+            top: 0;
+            z-index: 1020;
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .pd-topbar-titles {
+            flex: 1;
+            min-width: 140px;
+        }
+
+        .pd-context-search {
+            min-width: 200px;
+            max-width: 360px;
+            flex: 1;
+        }
+
+        .pd-workspace {
+            flex: 1;
+            padding: 1.5rem;
+            overflow: auto;
+            min-height: 0;
+            position: relative;
+        }
+
+        .pd-route-panel {
+            transition: opacity 0.22s ease, transform 0.22s ease;
+        }
+
+        .pd-route-panel.pd-out {
+            opacity: 0;
+            transform: translateY(8px);
+            pointer-events: none;
+        }
+
+        .pd-skeleton-overlay {
+            position: absolute;
+            inset: 0;
+            padding: 1.5rem;
+            background: #f1f5f9;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .pd-sk-line {
+            height: 14px;
+            border-radius: 0.5rem;
+            background: linear-gradient(90deg, #e2e8f0 0%, #f8fafc 45%, #e2e8f0 90%);
+            background-size: 200% 100%;
+            animation: pd-shimmer 1.1s ease-in-out infinite;
+            margin-bottom: 12px;
+        }
+
+        .pd-sk-card {
+            height: 88px;
+            border-radius: 1rem;
+            background: linear-gradient(90deg, #e2e8f0 0%, #f8fafc 45%, #e2e8f0 90%);
+            background-size: 200% 100%;
+            animation: pd-shimmer 1.1s ease-in-out infinite;
+        }
+
+        @keyframes pd-shimmer {
+            0% { background-position: 100% 0; }
+            100% { background-position: -100% 0; }
+        }
+
+        .rounded-2xl {
+            border-radius: 1rem;
+        }
+
+        .kpi-card {
+            background: #fff;
+            border-radius: 1rem;
+            padding: 1.35rem;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+        }
+
+        .kpi-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-right: 1rem;
+        }
+
+        .ticket-table {
+            background: #fff;
+            border-radius: 1rem;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
+
+        .ticket-table .table> :not(caption)>*>* {
+            padding: 0.85rem 1.15rem;
+            vertical-align: middle;
+        }
+
+        .ticket-table thead th {
+            font-size: 0.7rem;
+            letter-spacing: 0.06em;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 600;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        @media (max-width: 991.98px) {
+            .pd-sidebar {
+                transform: translateX(-100%);
+            }
+
+            .pd-sidebar.pd-open {
+                transform: translateX(0);
+            }
+
+            .pd-main {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+
+<body class="pd-agent-body">
+
+    <div class="pd-shell">
+        <div class="pd-sidebar-backdrop d-lg-none" id="pdSidebarBackdrop" onclick="pdCloseDrawer()" aria-hidden="true"></div>
+
+        <aside class="pd-sidebar" id="pdSidebar" aria-label="Primary navigation">
+            <div class="pd-sidebar-brand text-truncate">
+                <i class="bi bi-hexagon-fill text-primary"></i> PerfectDesk 360
+            </div>
+
+            <ul class="pd-nav-wrap">
+                <li class="nav-item">
+                    <a href="#/agent/dashboard" class="pd-nav-link active" data-pd-route="dashboard"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#/agent/my-tickets" class="pd-nav-link" data-pd-route="my-tickets"><i class="bi bi-inbox"></i> My Tickets
+                        <span class="badge ms-auto rounded-pill" style="background: rgba(239,68,68,.25); color: #fecaca;" id="sidebar-myqueue-count">0</span></a>
+                </li>
+                <li class="nav-item">
+                    <a href="#/agent/unassigned" class="pd-nav-link" data-pd-route="unassigned"><i class="bi bi-person-dash"></i> Unassigned</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#/agent/escalated" class="pd-nav-link" data-pd-route="escalated"><i class="bi bi-exclamation-triangle"></i> Escalated</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#/agent/resolved" class="pd-nav-link" data-pd-route="resolved"><i class="bi bi-check2-circle"></i> Resolved</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#/agent/closed" class="pd-nav-link" data-pd-route="closed"><i class="bi bi-archive"></i> Closed &amp; Archived</a>
+                </li>
+                <li class="nav-item mt-3"><span class="pd-nav-section-label">Resources</span></li>
+                <li class="nav-item">
+                    <a href="#/agent/knowledge-base" class="pd-nav-link" data-pd-route="knowledge-base"><i class="bi bi-book"></i> Knowledge Base</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#/agent/customer-history" class="pd-nav-link" data-pd-route="customer-history"><i class="bi bi-clock-history"></i> Customer History</a>
+                </li>
+            </ul>
+
+            <div class="p-3 border-top border-secondary border-opacity-25 mt-auto">
+                <div class="dropdown">
+                    <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle w-100 py-1" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white fw-bold me-3"
+                            style="width: 40px; height: 40px;" id="sidebar-user-initial">JS</div>
+                        <div class="text-start overflow-hidden">
+                            <div class="fw-bold fs-6 text-truncate" id="sidebar-user-name">Agent</div>
+                            <div class="small text-white-50" id="sidebar-user-role">Support Agent</div>
+                        </div>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-dark text-small shadow w-100">
+                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#userProfileModal"><i class="bi bi-gear me-2"></i> Profile &amp; settings</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" onclick="logout()"><i class="bi bi-box-arrow-right me-2"></i> Sign out</a></li>
+                    </ul>
+                </div>
+            </div>
+        </aside>
+
+        <div class="pd-main">
+            <header class="pd-topbar">
+                <button type="button" class="btn btn-light border d-lg-none rounded-2" id="pdMenuToggle" onclick="pdToggleDrawer()" aria-label="Open menu">
+                    <i class="bi bi-list-lg"></i>
+                </button>
+                <div class="pd-topbar-titles">
+                    <h1 class="h5 fw-bold mb-0 text-dark" id="pdPageTitle">Dashboard</h1>
+                    <p class="small text-muted mb-0 d-none d-md-block" id="pdPageSubtitle">Overview and your active queue</p>
+                </div>
+                <div class="input-group input-group-sm pd-context-search shadow-sm rounded-2 overflow-hidden" id="pdSearchGroup">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="search" class="form-control border-start-0" id="pdContextSearch" placeholder="Search…" autocomplete="off" aria-label="Context search">
+                </div>
+                <button type="button" class="btn btn-primary rounded-pill px-3 shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#createTicketModal">
+                    <i class="bi bi-plus-lg me-1"></i> Create Ticket
+                </button>
+            </header>
+
+            <main class="pd-workspace" id="pdWorkspace">
+                <div class="pd-skeleton-overlay d-none" id="pdSkeletonOverlay" aria-hidden="true">
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4"><div class="pd-sk-card"></div></div>
+                        <div class="col-md-4"><div class="pd-sk-card"></div></div>
+                        <div class="col-md-4"><div class="pd-sk-card"></div></div>
+                    </div>
+                    <div class="pd-sk-line" style="width:40%"></div>
+                    <div class="pd-sk-line" style="width:85%"></div>
+                    <div class="pd-sk-line" style="width:70%"></div>
+                    <div class="pd-sk-line" style="width:90%"></div>
+                </div>
+
+                <div class="pd-route-panel" id="pdRoutePanel">
+            <!-- KPI Row -->
+            <div class="row g-3 mb-4" id="dashboard-kpis">
+                <div class="col-md-4 col-xl-2 col-sm-6">
+                    <div class="kpi-card">
+                        <div class="kpi-icon text-primary bg-primary bg-opacity-10"><i
+                                class="bi bi-ticket-detailed"></i></div>
+                        <div>
+                            <div class="text-muted small fw-semibold text-uppercase">My Open</div>
+                            <h3 class="mb-0 fw-bold" id="kpi-my-open">0</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 col-xl-3 col-sm-6">
+                    <div class="kpi-card">
+                        <div class="kpi-icon text-danger bg-danger bg-opacity-10"><i
+                                class="bi bi-exclamation-circle"></i></div>
+                        <div>
+                            <div class="text-muted small fw-semibold text-uppercase">Critical / SLA Risk</div>
+                            <h3 class="mb-0 fw-bold" id="kpi-critical">0</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 col-xl-2 col-sm-6">
+                    <div class="kpi-card">
+                        <div class="kpi-icon text-warning bg-warning bg-opacity-10"><i class="bi bi-alarm"></i></div>
+                        <div>
+                            <div class="text-muted small fw-semibold text-uppercase">Due Today</div>
+                            <h3 class="mb-0 fw-bold" id="kpi-due">0</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 col-xl-3 col-sm-6">
+                    <div class="kpi-card">
+                        <div class="kpi-icon text-info bg-info bg-opacity-10"><i class="bi bi-arrow-repeat"></i></div>
+                        <div>
+                            <div class="text-muted small fw-semibold text-uppercase">Waiting Customer</div>
+                            <h3 class="mb-0 fw-bold" id="kpi-waiting">0</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 col-xl-2 col-sm-6">
+                    <div class="kpi-card border-success border-opacity-50">
+                        <div class="kpi-icon text-success bg-success bg-opacity-10"><i class="bi bi-check2-circle"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small fw-semibold text-uppercase">Resolved Today</div>
+                            <h3 class="mb-0 fw-bold" id="kpi-resolved">0</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Real-time specific Enterprise Widgets -->
+            <div class="row g-3 mb-4" id="dashboard-metrics-row">
+                <div class="col-6 col-md-3">
+                    <div class="bg-white p-3 rounded-4 shadow-sm border border-light h-100 transition-all hover-shadow">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="text-muted small text-uppercase fw-bold" style="letter-spacing: 0.5px;">Avg Response</div>
+                            <i class="bi bi-lightning-charge text-warning"></i>
+                        </div>
+                        <div class="fw-bolder fs-3 text-dark"><span id="metric-avg-response">12</span>m <span class="text-success fw-semibold ms-2" style="font-size: 0.8rem;" id="metric-avg-response-sub"></span></div>
+                        <div class="text-muted" style="font-size: 0.75rem;">Lifetime average</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="bg-white p-3 rounded-4 shadow-sm border border-light h-100 transition-all hover-shadow">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="text-muted small text-uppercase fw-bold" style="letter-spacing: 0.5px;">Satisfaction index</div>
+                            <i class="bi bi-star-fill text-warning"></i>
+                        </div>
+                        <div class="fw-bolder fs-3 text-dark"><span id="metric-csat">0.0</span><span class="fs-6 text-muted" id="metric-csat-suffix">/5</span> <span class="text-success fw-semibold ms-2" style="font-size: 0.8rem;" id="metric-csat-sub"></span></div>
+                        <div class="text-muted" style="font-size: 0.75rem; line-height: 1.35;">Based on active metrics</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="bg-white p-3 rounded-4 shadow-sm border border-light h-100 transition-all hover-shadow">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="text-muted small text-uppercase fw-bold" style="letter-spacing: 0.5px;">Resolution Time</div>
+                            <i class="bi bi-stopwatch text-primary"></i>
+                        </div>
+                        <div class="fw-bolder fs-3 text-dark"><span id="metric-resolution">2.4</span>h <span class="text-danger fw-semibold ms-2" style="font-size: 0.8rem;" id="metric-resolution-sub"></span></div>
+                        <div class="text-muted" style="font-size: 0.75rem;">Calculated resolve time</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="bg-white p-3 rounded-4 shadow-sm border border-light h-100 transition-all hover-shadow">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="text-muted small text-uppercase fw-bold" style="letter-spacing: 0.5px;">Productivity</div>
+                            <i class="bi bi-graph-up-arrow text-success"></i>
+                        </div>
+                        <div class="fw-bolder fs-3 text-dark"><span id="metric-productivity">94</span>% <span class="text-success fw-semibold ms-2" style="font-size: 0.8rem;" id="metric-productivity-sub"></span></div>
+                        <div class="text-muted" style="font-size: 0.75rem;">Agent efficiency matrix</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ticket-table rounded-2xl" id="pdQueueCard">
+                <div class="bg-white px-3 py-3 border-bottom d-flex gap-2 flex-wrap align-items-center" id="pdQueueToolbar">
+                    <input type="hidden" id="filterSearch" value="">
+                    <select id="filterPriority" class="form-select form-select-sm w-auto text-muted" onchange="applyFilters()">
+                        <option value="">Priority: All</option>
+                    </select>
+                    <select id="ticketSortOrder" class="form-select form-select-sm w-auto text-muted" onchange="loadTickets(window.__lastTicketQueue || 'myqueue')" title="Sort order from server">
+                        <option value="created">Sort: Newest</option>
+                        <option value="sla_resolution">Sort: SLA resolution due</option>
+                    </select>
+                    <select id="filterStatus" class="form-select form-select-sm w-auto text-muted" onchange="applyFilters()">
+                        <option value="">Status: All</option>
+                        <option value="Submitted">🆕 Submitted</option>
+                        <option value="Under Review">👀 Under Review</option>
+                        <option value="Working on It">🛠 Working on It</option>
+                        <option value="Waiting">⏳ Waiting</option>
+                        <option value="Resolved">✅ Resolved</option>
+                        <option value="Closed">🔒 Closed</option>
+                    </select>
+                    <button class="btn btn-sm btn-outline-secondary rounded-pill whitespace-nowrap" onclick="showToast('Advanced filters coming soon! Use the search or dropdowns for now.', 'secondary')"><i class="bi bi-filter"></i> More Filters</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill whitespace-nowrap" id="btnForwardBatch" onclick="openForwardBatchModal()" disabled title="Select tickets with checkboxes first">
+                        <i class="bi bi-envelope-arrow-up me-1"></i> Forward (<span id="forwardSelectedCount">0</span>)
+                    </button>
+                    <div class="form-check form-switch ms-auto mt-1" id="pdSlaRiskWrap">
+                        <input class="form-check-input" type="checkbox" role="switch" id="slaRiskToggle" onchange="applyFilters()">
+                        <label class="form-check-label small text-danger fw-medium" for="slaRiskToggle">SLA Risk Only</label>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle" id="pdTicketTable">
+                        <thead class="table-light">
+                            <tr id="pdTicketTableHeadRow">
+                                <th class="border-0 text-center" style="width:36px;" title="Select for batch forward">
+                                    <input type="checkbox" class="form-check-input m-0" id="forwardSelectAll" onchange="toggleForwardSelectAll(this)" aria-label="Select all visible">
+                                </th>
+                                <th class="ps-3 border-0">ID</th>
+                                <th class="border-0">Priority</th>
+                                <th class="border-0">Subject</th>
+                                <th class="border-0">Customer</th>
+                                <th class="border-0">Assignee</th>
+                                <th class="border-0">Status</th>
+                                <th class="border-0">Updated</th>
+                                <th class="text-end border-0">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ticketTableBody">
+                            <tr><td colspan="9" class="text-center text-muted py-4">Loading tickets…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Knowledge Base (client-side articles; search via header) -->
+            <div class="d-none" id="pdKbPanel">
+                <div class="bg-white rounded-2xl border shadow-sm p-4 mb-3">
+                    <h2 class="h6 fw-bold text-dark mb-1">Knowledge Base</h2>
+                    <p class="small text-muted mb-0">Search internal articles. Links open in a new tab when available.</p>
+                </div>
+                <div class="row g-3" id="pdKbResults"></div>
+            </div>
+
+            <!-- Customer History -->
+            <div class="d-none" id="pdCustomerPanel">
+                <div class="bg-white rounded-2xl border shadow-sm p-4 mb-3 d-flex flex-wrap gap-2 align-items-end">
+                    <div class="flex-grow-1" style="min-width:220px">
+                        <label class="form-label small text-muted mb-1 fw-semibold" for="pdCustomerLookupBtn">Customer lookup</label>
+                        <p class="small text-muted mb-0">Use the header search, then click <strong>Lookup</strong> (or press Enter in the search field).</p>
+                    </div>
+                    <button type="button" class="btn btn-primary rounded-pill" id="pdCustomerLookupBtn" onclick="pdRunCustomerLookup()"><i class="bi bi-search me-1"></i> Lookup</button>
+                </div>
+                <div class="row g-3">
+                    <div class="col-lg-7">
+                        <div class="bg-white rounded-2xl border shadow-sm overflow-hidden">
+                            <div class="px-3 py-2 border-bottom small fw-semibold text-muted text-uppercase" style="letter-spacing:.06em">Tickets</div>
+                            <div class="table-responsive" style="max-height:420px">
+                                <table class="table table-hover mb-0 align-middle">
+                                    <thead class="table-light small text-muted"><tr><th class="ps-3">ID</th><th>Subject</th><th>Status</th><th>Updated</th></tr></thead>
+                                    <tbody id="pdCustomerTicketsBody"><tr><td colspan="4" class="text-center text-muted py-4">Enter an email or name and run lookup.</td></tr></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-5">
+                        <div class="bg-white rounded-2xl border shadow-sm p-3">
+                            <div class="small fw-semibold text-muted text-uppercase mb-2" style="letter-spacing:.06em">Timeline</div>
+                            <div id="pdCustomerTimeline" class="small" style="max-height:420px;overflow:auto"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+                </div><!-- /#pdRoutePanel -->
+            </main>
+        </div><!-- /.pd-main -->
+    </div><!-- /.pd-shell -->
+
+    <!-- Modals for Quick Actions -->
+
+    <!-- Create Ticket Modal -->
+    <div class="modal fade" id="createTicketModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-building-fill-up text-warning me-2"></i> Create Ticket</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Customer Name</label>
+                            <input type="text" class="form-control" id="newTktName" placeholder="e.g. Acme Corp CEO">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Customer Email</label>
+                            <input type="email" class="form-control" id="newTktEmail" placeholder="ceo@acmecorp.com">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold">Subject</label>
+                            <input type="text" class="form-control" id="newTktSubject" placeholder="Enterprise System Outage">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Priority Level</label>
+                            <select class="form-select" id="newTktPriority" disabled>
+                                <option value="Enterprise Critical" selected>Enterprise Critical</option>
+                            </select>
+                            <small class="text-muted">Locked to Enterprise level</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Category</label>
+                            <select class="form-select" id="newTktCategory"></select>
+                            <small class="text-muted">Set by your manager under Ticket Categories / portal settings.</small>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold">Description</label>
+                            <textarea class="form-control" id="newTktDesc" rows="4" placeholder="Detail the enterprise-level issue..."></textarea>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold">Attachments</label>
+                            <input type="file" class="form-control form-control-sm" id="newTktFileInput" multiple>
+                            <div class="form-text small">Optional — same as public submit (max 25 MB per request).</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-dark" onclick="submitEnterpriseTicket()">
+                        <i class="bi bi-rocket-takeoff text-warning me-1"></i> Submit Enterprise Ticket
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Batch forward: multiple tickets in one email -->
+    <div class="modal fade" id="forwardBatchModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-envelope-arrow-up text-primary me-2"></i> Forward <span id="batchForwardTicketCount">0</span> tickets</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pt-2">
+                    <p class="small text-muted mb-3">One email will include every selected ticket (summary, description, approvals) and optional file attachments. Single-ticket forward is still available inside an open case.</p>
+                    <label class="form-label small fw-semibold">To <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control form-control-sm mb-2" id="batchForwardToEmails" placeholder="colleague@company.com, …" autocomplete="off">
+                    <label class="form-label small fw-semibold">CC</label>
+                    <input type="text" class="form-control form-control-sm mb-2" id="batchForwardCcEmails" placeholder="comma-separated emails">
+                    <label class="form-label small fw-semibold">Message</label>
+                    <textarea class="form-control form-control-sm mb-2" id="batchForwardMessage" rows="2" placeholder="Context for recipients…"></textarea>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="batchForwardIncludeTicketAttachments" checked>
+                        <label class="form-check-label small" for="batchForwardIncludeTicketAttachments">Attach files stored on these tickets (filenames prefixed with ticket id)</label>
+                    </div>
+                    <label class="form-label small fw-semibold">Extra attachments</label>
+                    <input type="file" class="form-control form-control-sm mb-3" id="batchForwardExtraFiles" multiple>
+                    <button type="button" class="btn btn-primary btn-sm w-100 fw-bold" onclick="submitTicketForwardBatch()"><i class="bi bi-send-fill me-1"></i> Send one email</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enterprise Ticket View & Action Modal -->
+    <div class="modal fade" id="ticketViewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable ent-ticket-view-dialog">
+            <div class="modal-content border-0 shadow-lg enterprise-ticket-shell">
+                <div class="ent-header-accent"></div>
+                <div class="modal-header ent-case-header text-white border-0 rounded-0">
+                    <div class="flex-grow-1 me-3">
+                        <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+                            <span class="ent-case-badge"><i class="bi bi-shield-lock"></i> Enterprise case</span>
+                        </div>
+                        <h4 class="modal-title ent-case-title mb-0" id="viewTktSubject">Ticket Subject</h4>
+                        <div class="ent-meta-chips">
+                            <span class="ent-chip"><i class="bi bi-hash"></i><span id="viewTktId">TKT-0000</span></span>
+                            <span class="ent-chip"><i class="bi bi-building"></i><span id="viewTktCustomer">Customer</span></span>
+                            <span class="ent-chip"><i class="bi bi-flag-fill"></i><span id="viewTktPriority">Priority</span></span>
+                            <span class="ent-chip"><i class="bi bi-activity"></i><span id="viewTktStatus">Status</span></span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0 ent-ticket-modal-body">
+                    <div class="row g-0 ent-ticket-view-row align-items-stretch">
+                        <div class="col-12 col-lg-8 border-end ent-conversation-col ent-ticket-main-pane">
+                            <div class="ent-section-title"><i class="bi bi-file-text"></i> Original request</div>
+                            <div class="ent-original-card">
+                                <p class="ent-original-body" id="viewTktDesc"></p>
+                            </div>
+
+                            <div class="ent-section-title"><i class="bi bi-chat-dots"></i> Activity &amp; thread</div>
+                            <div id="viewTktHistory" class="ent-activity-stream mb-3"></div>
+
+                            <div class="ent-section-title"><i class="bi bi-paperclip"></i> Attachments</div>
+                            <div id="viewTktAttachments" class="mb-2"></div>
+                            <div class="ent-staff-attach-bar border rounded-3 p-3 mb-4 bg-light bg-opacity-50">
+                                <div class="small fw-semibold text-secondary mb-2"><i class="bi bi-cloud-arrow-up me-1"></i>Add files to this case</div>
+                                <div class="d-flex flex-wrap align-items-center gap-2">
+                                    <input type="file" class="form-control form-control-sm" style="max-width: 260px;" id="staffAddAttachInput" multiple>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="uploadAdditionalTicketFiles()"><i class="bi bi-upload me-1"></i>Upload</button>
+                                </div>
+                                <div class="form-text small mb-0">Stored on the ticket for view/download (25 MB max per upload).</div>
+                            </div>
+
+                            <div class="ent-reply-dock">
+                                <div class="ent-reply-dock-header">
+                                    <p class="ent-reply-dock-title mb-0"><i class="bi bi-pencil-square text-primary"></i> Compose response</p>
+                                    <p class="ent-reply-dock-hint mb-0 d-none d-md-block">Customer-facing replies are logged on the official record.</p>
+                                </div>
+                                <div class="px-3 pt-3">
+                                    <ul class="nav nav-pills ent-reply-tabs" role="tablist">
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link active" id="ent-tab-reply" data-bs-toggle="pill" data-bs-target="#tabReply" type="button" role="tab"><i class="bi bi-reply-fill me-1"></i> Customer channel</button>
+                                        </li>
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link text-warning-emphasis" id="ent-tab-note" data-bs-toggle="pill" data-bs-target="#tabNote" type="button" role="tab"><i class="bi bi-lock-fill me-1"></i> Internal only</button>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="tab-content ent-composer-area">
+                                    <div class="tab-pane fade show active" id="tabReply" role="tabpanel">
+                                        <label class="form-label small fw-semibold text-secondary mb-1">Message to organization contact</label>
+                                        <textarea class="form-control" id="replyText" rows="5" placeholder="Compose a clear, professional response. Include timelines, ownership, and next steps where applicable."></textarea>
+                                        <label class="form-label small fw-semibold text-secondary mb-1 mt-2">Attachments with this reply (optional)</label>
+                                        <input type="file" class="form-control form-control-sm mb-2" id="replyAttachInput" multiple>
+                                        <div class="ent-composer-actions">
+                                            <span class="small text-muted"><i class="bi bi-info-circle me-1"></i>Delivered as an official support communication</span>
+                                            <div class="d-flex gap-2">
+                                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="showToast('Draft retained in browser session', 'secondary')">Save draft</button>
+                                                <button type="button" class="btn btn-primary ent-btn-send" onclick="sendCustomerReply()"><i class="bi bi-send-fill me-2"></i>Send to customer</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="tab-pane fade" id="tabNote" role="tabpanel">
+                                        <div class="ent-internal-strip">
+                                            <i class="bi bi-shield-exclamation"></i>
+                                            <span><strong>Privileged &amp; confidential.</strong> Internal notes are never visible to the requester or external parties. Suitable for diagnostics, security detail, and executive escalation context.</span>
+                                        </div>
+                                        <label class="form-label small fw-semibold text-secondary mb-1">Internal work note</label>
+                                        <textarea class="form-control ent-composer-internal" id="noteText" rows="5" placeholder="Document technical findings, change records, vendor coordination, or managerial context…"></textarea>
+                                        <div class="ent-composer-actions">
+                                            <span class="small text-muted"><i class="bi bi-lock-fill me-1 text-warning"></i>Stored in secure internal audit trail</span>
+                                            <div class="d-flex gap-2">
+                                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="showToast('Draft retained in browser session', 'secondary')">Save draft</button>
+                                                <button type="button" class="btn btn-warning text-dark ent-btn-send" onclick="submitTicketAction('add_work_log', document.getElementById('noteText').value)"><i class="bi bi-journal-lock me-2"></i>Add internal note</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-lg-4 p-4 ent-properties-panel border-start border-light-subtle d-flex flex-column">
+                            <datalist id="managerEmailDatalist"></datalist>
+                            <div class="ent-case-properties-block flex-grow-1">
+                            <h6 class="fw-bold text-uppercase text-muted small mb-3 border-bottom pb-2" style="letter-spacing: 0.08em;">Case properties</h6>
+                            <input type="hidden" id="activeTicketId">
+                            
+                            <div class="small">
+                                <div class="mb-3">
+                                    <span class="text-muted fw-semibold">Tracking ID:</span> 
+                                    <span class="d-block text-dark fw-bold fs-6 mt-1" id="viewSideTrackingId">S6B-JGM-N6P5</span>
+                                    <a href="javascript:void(0)" class="text-decoration-none" style="font-size: 0.8rem;" onclick="navigator.clipboard.writeText(document.getElementById('viewSideTrackingId').innerText); showToast('Link copied URL!', 'primary');">Copy ticket link</a>
+                                </div>
+                                <div class="mb-2 pb-1 border-bottom border-light">
+                                    <span class="text-muted fw-semibold">Ticket number:</span>
+                                    <span class="float-end text-dark fw-bold" id="viewSideTktNum">415</span>
+                                </div>
+                                <div class="mb-2 pb-1 border-bottom border-light">
+                                    <span class="text-muted fw-semibold">Created on:</span>
+                                    <span class="float-end text-dark" id="viewSideCreated">04/02/2026 4:59 pm</span>
+                                </div>
+                                <div class="mb-2 pb-1 border-bottom border-light">
+                                    <span class="text-muted fw-semibold">Updated:</span>
+                                    <span class="float-end text-dark" id="viewSideUpdated">04/02/2026 4:59 pm</span>
+                                </div>
+                                <div class="mb-2 pb-1 border-bottom border-light">
+                                    <span class="text-muted fw-semibold">Replies:</span>
+                                    <span class="float-end text-dark fw-bold" id="viewSideReplies">0</span>
+                                </div>
+                                <div class="mb-2 pb-1 border-bottom border-light">
+                                    <span class="text-muted fw-semibold">Last replier:</span>
+                                    <span class="float-end text-primary fw-medium" id="viewSideLastReply">Customer</span>
+                                </div>
+                                <div class="mb-2 pb-1 border-bottom border-light">
+                                    <span class="text-muted fw-semibold">Time worked:</span>
+                                    <span class="float-end text-dark">00:00:00</span>
+                                </div>
+                                <div class="mb-2 pb-1 border-bottom border-light">
+                                    <span class="text-muted fw-semibold">SLA · First response due:</span>
+                                    <span class="float-end text-dark fw-medium text-end" style="max-width: 58%; font-size: 0.8rem;" id="viewSideSlaFirst">—</span>
+                                </div>
+                                <div class="mb-2 pb-1 border-bottom border-light">
+                                    <span class="text-muted fw-semibold">SLA · Resolution due:</span>
+                                    <span class="float-end text-dark fw-medium text-end" style="max-width: 58%; font-size: 0.8rem;" id="viewSideSlaResolve">—</span>
+                                </div>
+                                <div class="mb-2 pb-1 border-bottom border-light">
+                                    <span class="text-muted fw-semibold">Expected resolution (customer):</span>
+                                    <span class="float-end text-dark fw-medium text-end" style="max-width: 55%; font-size: 0.8rem;" id="viewSideExpectedRes">—</span>
+                                </div>
+                                <div class="mb-2 pb-1 border-bottom border-light">
+                                    <span class="text-muted fw-semibold d-block mb-1">Primary analysis:</span>
+                                    <div class="small text-dark text-break" id="viewSidePrimaryAnalysis">—</div>
+                                </div>
+                                <div class="mb-3 pb-1 border-bottom border-light">
+                                    <span class="text-muted fw-semibold">Due date:</span>
+                                    <span class="float-end text-dark">None</span>
+                                </div>
+
+                                <div class="mb-2 mt-4">
+                                    <span class="text-muted fw-semibold d-block mb-1">Ticket status:</span>
+                                    <select class="form-select form-select-sm border-secondary shadow-sm fw-medium" id="actionStatus" onfocus="pdStatusSelectRemember(this)" onchange="pdOnActionStatusChange(this)">
+                                        <option value="🆕 Submitted">🆕 Submitted</option>
+                                        <option value="👀 Under Review">👀 Under Review</option>
+                                        <option value="🛠 Working on It">🛠 Working on It</option>
+                                        <option value="⏳ Pending Manager Approval">⏳ Pending Manager Approval</option>
+                                        <option value="⏳ Waiting for customer.">⏳ Waiting for customer.</option>
+                                        <option value="✅ Resolved">✅ Resolved</option>
+                                        <option value="🔁 Reopened">🔁 Reopened</option>
+                                        <option value="🔒 Closed">🔒 Closed</option>
+                                        <option value="❌ Approval declined">❌ Approval declined</option>
+                                        <option value="🔄 Approval rework requested">🔄 Approval rework requested</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <button class="btn btn-sm btn-outline-success w-100 fw-bold" onclick="pdOpenResolutionNoteModal('✅ Resolved')"><i class="bi bi-check2-circle"></i> Mark as Resolved</button>
+                                </div>
+
+                                <div class="mb-2 mt-4">
+                                    <span class="text-muted fw-semibold d-block mb-1">Category:</span>
+                                    <select class="form-select form-select-sm border-secondary shadow-sm" id="viewSideCategory">
+                                        <option value="PSS_INTERNAL">PSS_INTERNAL</option>
+                                        <option value="Infrastructure">Infrastructure</option>
+                                        <option value="Security">Security</option>
+                                        <option value="Database">Database</option>
+                                        <option value="Hardware">Hardware</option>
+                                        <option value="Software">Software</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="mb-2">
+                                    <span class="text-muted fw-semibold d-block mb-1">Priority:</span>
+                                    <select class="form-select form-select-sm border-secondary shadow-sm" id="viewSidePriorityDropdown">
+                                        <option value="Low">Low</option>
+                                        <option value="Medium">Medium</option>
+                                        <option value="High">High</option>
+                                        <option value="Enterprise Critical">Enterprise Critical</option>
+                                    </select>
+                                </div>
+                                <div class="mb-2">
+                                    <span class="text-muted fw-semibold d-block mb-1">Assigned to:</span>
+                                    <select class="form-select form-select-sm border-secondary shadow-sm" id="viewSideAssignee" onchange="onViewSideAssigneeChange(this)">
+                                        <option value="">Unassigned</option>
+                                    </select>
+                                </div>
+                                <div class="mb-2 mt-4 text-center">
+                                    <span class="text-muted fw-semibold mb-1 d-inline me-2">Collaborators:</span>
+                                    <a href="javascript:void(0)" class="text-decoration-none small text-primary fw-medium" onclick="alert('Collaborator modal placeholder')">+ Add a collaborator</a>
+                                </div>
+                            </div>
+                            </div>
+                            <div class="ent-approval-rail pt-3 mt-2 border-top border-light-subtle">
+                            <div class="ent-approval-wrap position-sticky mb-0" style="top: 0.5rem; z-index: 6;">
+                                <div class="ent-approval-panel">
+                                    <div class="ent-approval-panel-head d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                        <span class="fw-bold text-dark"><i class="bi bi-patch-check-fill text-primary me-1"></i> Manager approval</span>
+                                        <span class="ent-approval-badge bg-secondary bg-opacity-15 text-secondary" id="approvalStatusBadge">Not requested</span>
+                                    </div>
+                                    <div class="p-3 small">
+                                        <div id="approvalSummaryBlock">
+                                            <div class="mb-2"><span class="text-muted">Approver</span><div class="fw-semibold text-break" id="approvalManagerDisplay">—</div></div>
+                                            <div class="mb-2"><span class="text-muted">Requested</span><div id="approvalRequestedAt">—</div></div>
+                                            <div class="mb-2"><span class="text-muted">Due</span><div id="approvalDueDisplay">—</div></div>
+                                            <div class="ent-approval-countdown mb-2 d-none" id="approvalCountdownWrap"><i class="bi bi-stopwatch me-1"></i><span id="approvalCountdownText">—</span></div>
+                                            <div class="mb-0"><span class="text-muted">Manager note</span><div class="text-break mt-1" id="approvalManagerNote">—</div></div>
+                                        </div>
+                                        <hr class="my-3 opacity-25">
+                                        <div id="approvalRequestForm" class="d-none">
+                                            <label class="form-label fw-semibold text-secondary mb-1">Manager email</label>
+                                            <input type="email" class="form-control form-control-sm mb-2" id="approvalManagerEmail" list="managerEmailDatalist" placeholder="manager@company.com" autocomplete="off">
+                                            <label class="form-label fw-semibold text-secondary mb-1">CC (optional)</label>
+                                            <input type="text" class="form-control form-control-sm mb-2" id="approvalCcEmails" placeholder="comma-separated emails">
+                                            <label class="form-label fw-semibold text-secondary mb-1">Approval reason</label>
+                                            <textarea class="form-control form-control-sm mb-2" id="approvalReason" rows="2" placeholder="Why is sign-off required?"></textarea>
+                                            <label class="form-label fw-semibold text-secondary mb-1">Message to manager</label>
+                                            <textarea class="form-control form-control-sm mb-2" id="approvalMessage" rows="3" placeholder="Context, risk, customer impact…"></textarea>
+                                            <label class="form-label fw-semibold text-secondary mb-1">Due by</label>
+                                            <input type="datetime-local" class="form-control form-control-sm mb-3" id="approvalDueBy">
+                                            <button type="button" class="btn btn-primary btn-sm w-100 fw-bold" onclick="submitApprovalRequest()"><i class="bi bi-send-fill me-1"></i> Send approval</button>
+                                        </div>
+                                        <div id="approvalPendingActions" class="d-none">
+                                            <div class="d-grid gap-2">
+                                                <button type="button" class="btn btn-outline-primary btn-sm fw-semibold" onclick="resendApprovalRequest()"><i class="bi bi-arrow-repeat me-1"></i> Resend to manager</button>
+                                                <button type="button" class="btn btn-outline-danger btn-sm fw-semibold" onclick="cancelApprovalRequest()"><i class="bi bi-x-lg me-1"></i> Cancel request</button>
+                                            </div>
+                                        </div>
+                                        <p class="text-muted mb-0 mt-2 small" id="approvalAssigneeHint"></p>
+                                    </div>
+                                </div>
+                            </div>
+                            </div>
+                            <div class="ent-forward-rail pt-3 mt-3 border-top border-light-subtle">
+                                <div class="ent-approval-panel ent-forward-panel">
+                                    <div class="ent-approval-panel-head">
+                                        <span class="fw-bold text-dark"><i class="bi bi-envelope-arrow-up text-primary me-1"></i> Forward this ticket</span>
+                                    </div>
+                                    <div class="p-3 small">
+                                        <p class="text-muted mb-2">Single ticket: email this case only. To forward several tickets in one message, use checkboxes in the queue and <strong>Forward selected</strong>.</p>
+                                        <label class="form-label fw-semibold text-secondary mb-1">To <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control form-control-sm mb-2" id="forwardToEmails" placeholder="colleague@company.com, …" autocomplete="off">
+                                        <label class="form-label fw-semibold text-secondary mb-1">CC (optional)</label>
+                                        <input type="text" class="form-control form-control-sm mb-2" id="forwardCcEmails" placeholder="comma-separated emails">
+                                        <label class="form-label fw-semibold text-secondary mb-1">Message (optional)</label>
+                                        <textarea class="form-control form-control-sm mb-2" id="forwardMessage" rows="2" placeholder="Context for recipients…"></textarea>
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" id="forwardIncludeTicketAttachments" checked>
+                                            <label class="form-check-label" for="forwardIncludeTicketAttachments">Attach files stored on this ticket</label>
+                                        </div>
+                                        <label class="form-label fw-semibold text-secondary mb-1">Extra attachments (optional)</label>
+                                        <input type="file" class="form-control form-control-sm mb-3" id="forwardExtraFiles" multiple>
+                                        <button type="button" class="btn btn-outline-primary btn-sm w-100 fw-bold" onclick="submitTicketForward()"><i class="bi bi-send-fill me-1"></i> Send forward</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="firstAssignAckModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-envelope-check me-2"></i> Assign ticket &amp; notify customer</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" onclick="cancelFirstAssignPick()" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-muted">This ticket was <strong>unassigned</strong>. Enter the preliminary status below. The customer will receive an email from <strong>PerfectDesk 360</strong> with these details.</p>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Expected time of resolution</label>
+                        <input type="text" class="form-control" id="firstAssignETR" value="1 Day" maxlength="500" placeholder="e.g. 1 Day, 4 hours">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Primary analysis</label>
+                        <textarea class="form-control" id="firstAssignAnalysis" rows="3" maxlength="8000">We will check and update.</textarea>
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label small fw-semibold">Current ticket status (sent to customer)</label>
+                        <select class="form-select" id="firstAssignStatus" onchange="pdToggleFirstAssignClosureNote()">
+                            <option value="🆕 Submitted">🆕 Submitted</option>
+                            <option value="👀 Under Review">👀 Under Review</option>
+                            <option value="🛠 Working on It" selected>🛠 Working on It</option>
+                            <option value="⏳ Waiting for customer.">⏳ Waiting for customer.</option>
+                            <option value="✅ Resolved">✅ Resolved</option>
+                            <option value="🔁 Reopened">🔁 Reopened</option>
+                            <option value="🔒 Closed">🔒 Closed</option>
+                        </select>
+                    </div>
+                    <div class="mb-0 mt-3 d-none" id="firstAssignClosureNoteWrap">
+                        <label class="form-label small fw-semibold">Resolution note for customer <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="firstAssignClosureNote" rows="3" maxlength="8000" placeholder="Summarize what was done; the customer will see this on the ticket."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-top bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" onclick="cancelFirstAssignPick()">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="submitFirstAssignAck()"><i class="bi bi-check2-circle me-1"></i>Assign &amp; send email</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="resolutionNoteModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-chat-square-text me-2"></i>Customer resolution note</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-muted mb-2">Resolved and closed tickets require a short message the customer can read on the ticket thread.</p>
+                    <label class="form-label small fw-semibold">Resolution note <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="resolutionNoteText" rows="4" maxlength="8000" placeholder="e.g. what was fixed, next steps if any, or closure summary"></textarea>
+                </div>
+                <div class="modal-footer border-top bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" onclick="pdCancelResolutionNote()">Cancel</button>
+                    <button type="button" class="btn btn-success fw-bold" onclick="pdConfirmResolutionNote()">Apply status</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="attachmentDetailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-bottom bg-light">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-paperclip text-primary me-2"></i> Attachment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-2"><span class="badge bg-secondary bg-opacity-10 text-secondary border" id="attachmentDetailType">FILE</span></div>
+                    <p class="fw-semibold text-break mb-3" id="attachmentDetailName"></p>
+                    <p class="small text-muted mb-0">Only the file name was stored with this ticket. Use <strong>Copy</strong> in lists or request the original from the submitter if your process requires the binary.</p>
+                </div>
+                <div class="modal-footer border-top bg-light">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary btn-sm" id="attachmentDetailCopyBtn"><i class="bi bi-clipboard me-1"></i>Copy file name</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="attachmentPreviewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-bottom bg-light">
+                    <h5 class="modal-title fw-bold text-break" id="attachmentPreviewTitle">Preview</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0 bg-light" id="attachmentPreviewBody"></div>
+                <div class="modal-footer border-top bg-light">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Escalate Modal -->
+    <div class="modal fade" id="escalateModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-triangle me-2"></i> Escalate Ticket</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <label class="form-label fw-semibold">Escalate To</label>
+                    <select class="form-select mb-3">
+                        <option>L3 Network Engineering Group</option>
+                        <option>L3 Database Administrators</option>
+                        <option>IT Security Team</option>
+                        <option>Management Queue</option>
+                    </select>
+                    <label class="form-label fw-semibold">Reason for Escalation</label>
+                    <textarea class="form-control" rows="3"
+                        placeholder="Explain why this requires escalation..."></textarea>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"
+                        onclick="showToast('Ticket escalated successfully.', 'danger')">Confirm Escalation</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Close Modal -->
+    <div class="modal fade" id="closeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-check2-circle text-success me-2"></i> Resolve Ticket
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <label class="form-label fw-semibold">Resolution Code</label>
+                    <select class="form-select mb-3">
+                        <option>Issue Resolved</option>
+                        <option>User Error - Educated User</option>
+                        <option>Duplicate Ticket</option>
+                        <option>Will Not Fix</option>
+                    </select>
+                    <textarea class="form-control" rows="3"
+                        placeholder="Closing remarks (visible to customer)..."></textarea>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" data-bs-dismiss="modal"
+                        onclick="showToast('Ticket marked as resolved!', 'success')">Resolve & Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Profile Modal -->
+    <div class="modal fade" id="userProfileModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-person-circle text-primary me-2"></i> Profile &amp; settings</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-4 text-center">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3 fw-bold fs-3" style="width: 80px; height: 80px;" id="profile-modal-initial">U</div>
+                        <h5 class="fw-bold mb-1" id="profile-modal-name">User</h5>
+                        <p class="text-muted small mb-0" id="profile-modal-email">user@corp.com</p>
+                        <span class="badge bg-primary text-uppercase mt-2" id="profile-modal-role">Role</span>
+                    </div>
+                    <hr>
+                    <h6 class="fw-bold mb-3">Basic settings</h6>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Display name</label>
+                        <input type="text" class="form-control" id="profileDisplayName" placeholder="Your name as shown in the app">
+                    </div>
+                    <button type="button" class="btn btn-outline-primary w-100 mb-4" onclick="saveProfileSettings()">Save profile</button>
+                    <hr>
+                    <h6 class="fw-bold mb-3">Change password</h6>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Current password</label>
+                        <input type="password" class="form-control" id="profileOldPassword" autocomplete="current-password">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">New password</label>
+                        <input type="password" class="form-control" id="profileNewPassword" autocomplete="new-password">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Confirm new password</label>
+                        <input type="password" class="form-control" id="profileNewPasswordConfirm" autocomplete="new-password">
+                    </div>
+                    <button type="button" class="btn btn-primary w-100" onclick="updatePassword()">Update password</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Toast Container for Notifications -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="liveToast" class="toast align-items-center text-white bg-primary border-0" role="alert"
+            aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body fw-medium" id="toastMessage">
+                    Action executed successfully.
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                    aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const PD_ROUTE_CONFIG = {
+            dashboard: { queue: 'myqueue', title: 'Dashboard', subtitle: 'KPIs and your active queue', filterKey: 'dashboard', ticketUi: true, kpi: true, metrics: true, searchPh: 'Search your active queue…' },
+            'my-tickets': { queue: 'myqueue', title: 'My Tickets', subtitle: 'Everything assigned to you', filterKey: 'my-tickets', ticketUi: true, kpi: false, metrics: false, searchPh: 'Search assigned tickets…' },
+            unassigned: { queue: 'unassigned', title: 'Unassigned', subtitle: 'Global pickup queue', filterKey: 'unassigned', ticketUi: true, kpi: false, metrics: false, searchPh: 'Search unassigned tickets…', pickup: true },
+            escalated: { queue: 'escalated', title: 'Escalated', subtitle: 'L2 / high-priority triage', filterKey: 'escalated', ticketUi: true, kpi: false, metrics: false, searchPh: 'Search escalated tickets…' },
+            resolved: { queue: 'resolved', title: 'Resolved', subtitle: 'Recently resolved work', filterKey: 'resolved', ticketUi: true, kpi: false, metrics: false, searchPh: 'Search resolved tickets…' },
+            closed: { queue: 'closed', title: 'Closed & Archived', subtitle: 'Read-only history', filterKey: 'closed', ticketUi: true, kpi: false, metrics: false, searchPh: 'Search closed tickets…', readOnly: true },
+            'knowledge-base': { title: 'Knowledge Base', subtitle: 'Internal articles and runbooks', filterKey: 'kb', ticketUi: false, kpi: false, metrics: false, searchPh: 'Search articles…' },
+            'customer-history': { title: 'Customer History', subtitle: 'Prior tickets and timeline', filterKey: 'customers', ticketUi: false, kpi: false, metrics: false, searchPh: 'Customer email or name…' }
+        };
+
+        window.__pdCurrentRoute = 'dashboard';
+        window.__pdFilterStorageKey = 'dashboard';
+        window.__pdModuleFilters = {};
+        window.__pdKbArticles = [
+            { id: 'kb-1', title: 'Password reset — AD / Entra', tags: 'identity,password', excerpt: 'Verify MFA state, unlock account, and send secure reset link per policy.' },
+            { id: 'kb-2', title: 'VPN connectivity checklist', tags: 'network,vpn', excerpt: 'Split tunnel, certificate renewal, and split-DNS symptoms for remote users.' },
+            { id: 'kb-3', title: 'SLA breach — customer comms', tags: 'sla,comms', excerpt: 'Template for proactive updates when resolution due is at risk.' },
+            { id: 'kb-4', title: 'Handoff to L2 / engineering', tags: 'escalation', excerpt: 'Required fields: repro steps, logs, business impact, and change window.' },
+            { id: 'kb-5', title: 'Enterprise ticket attachments', tags: 'files', excerpt: 'Max size, allowed types, and redaction rules before forwarding externally.' },
+            { id: 'kb-6', title: 'Closing tickets — confirmation mail', tags: 'closure', excerpt: 'When to use closure confirmation vs. silent archive.' }
+        ];
+
+        function pdDelay(ms) {
+            return new Promise(function (resolve) { setTimeout(resolve, ms); });
+        }
+
+        function pdToggleDrawer() {
+            document.getElementById('pdSidebar').classList.toggle('pd-open');
+            document.getElementById('pdSidebarBackdrop').classList.toggle('show');
+        }
+
+        function pdCloseDrawer() {
+            document.getElementById('pdSidebar').classList.remove('pd-open');
+            document.getElementById('pdSidebarBackdrop').classList.remove('show');
+        }
+
+        function pdSaveModuleFilters(key) {
+            const ctx = document.getElementById('pdContextSearch');
+            const cfg = PD_ROUTE_CONFIG[window.__pdCurrentRoute];
+            const cur = { pdContextSearch: ctx ? ctx.value : '' };
+            if (cfg && cfg.ticketUi) {
+                pdSyncSearchToHidden();
+                const fs = document.getElementById('filterSearch');
+                const pr = document.getElementById('filterPriority');
+                const st = document.getElementById('filterStatus');
+                const so = document.getElementById('ticketSortOrder');
+                const sla = document.getElementById('slaRiskToggle');
+                cur.filterSearch = fs ? fs.value : '';
+                cur.filterPriority = pr ? pr.value : '';
+                cur.filterStatus = st ? st.value : '';
+                cur.ticketSortOrder = so ? so.value : '';
+                cur.slaRisk = sla ? !!sla.checked : false;
+            }
+            window.__pdModuleFilters[key] = cur;
+        }
+
+        function pdRestoreModuleFilters(key) {
+            const s = window.__pdModuleFilters[key];
+            if (!s) return;
+            const fs = document.getElementById('filterSearch');
+            const pr = document.getElementById('filterPriority');
+            const st = document.getElementById('filterStatus');
+            const so = document.getElementById('ticketSortOrder');
+            const sla = document.getElementById('slaRiskToggle');
+            const ctx = document.getElementById('pdContextSearch');
+            const q = s.pdContextSearch != null ? s.pdContextSearch : (s.filterSearch || '');
+            if (fs) fs.value = q;
+            if (ctx) ctx.value = q;
+            if (pr && s.filterPriority !== undefined) pr.value = s.filterPriority || '';
+            if (st && s.filterStatus !== undefined) st.value = s.filterStatus || '';
+            if (so && s.ticketSortOrder !== undefined) so.value = s.ticketSortOrder || 'created';
+            if (sla && s.slaRisk !== undefined) sla.checked = !!s.slaRisk;
+        }
+
+        function pdRouteFromHash() {
+            const h = (location.hash || '').replace(/^#/, '');
+            const m = h.match(/^\/agent\/([\w-]+)\/?$/);
+            const slug = m ? m[1] : 'dashboard';
+            return PD_ROUTE_CONFIG[slug] ? slug : 'dashboard';
+        }
+
+        function pdSetActiveNav(routeSlug) {
+            document.querySelectorAll('.pd-nav-link[data-pd-route]').forEach(function (a) {
+                a.classList.toggle('active', a.getAttribute('data-pd-route') === routeSlug);
+            });
+        }
+
+        function pdShowSkeleton(show) {
+            const el = document.getElementById('pdSkeletonOverlay');
+            if (el) el.classList.toggle('d-none', !show);
+        }
+
+        function pdSyncSearchToHidden() {
+            const ctx = document.getElementById('pdContextSearch');
+            const fs = document.getElementById('filterSearch');
+            if (ctx && fs && window.__pdCurrentRoute && PD_ROUTE_CONFIG[window.__pdCurrentRoute] && PD_ROUTE_CONFIG[window.__pdCurrentRoute].ticketUi) {
+                fs.value = ctx.value;
+            }
+        }
+
+        function pdRenderKbFilter() {
+            const q = ((document.getElementById('pdContextSearch') || {}).value || '').toLowerCase().trim();
+            const box = document.getElementById('pdKbResults');
+            if (!box) return;
+            const articles = window.__pdKbArticles || [];
+            const filtered = !q ? articles : articles.filter(function (a) {
+                const blob = (a.title + ' ' + a.tags + ' ' + a.excerpt).toLowerCase();
+                return blob.includes(q);
+            });
+            if (!filtered.length) {
+                box.innerHTML = '<div class="col-12"><div class="bg-white rounded-2xl border p-4 text-muted small">No articles match that search.</div></div>';
+                return;
+            }
+            box.innerHTML = filtered.map(function (a) {
+                return '<div class="col-md-6 col-xl-4"><div class="bg-white rounded-2xl border shadow-sm h-100 p-3 d-flex flex-column">'
+                    + '<div class="fw-semibold text-dark mb-1">' + escapeHtml(a.title) + '</div>'
+                    + '<div class="small text-muted mb-2">' + escapeHtml(a.excerpt) + '</div>'
+                    + '<div class="mt-auto small"><span class="badge bg-light text-secondary border">' + escapeHtml(a.tags) + '</span></div></div></div>';
+            }).join('');
+        }
+
+        function pdRunCustomerLookup() {
+            const q = ((document.getElementById('pdContextSearch') || {}).value || '').trim();
+            if (q.length < 2) {
+                showToast('Enter at least 2 characters (email or name).', 'warning');
+                return;
+            }
+            const staff = getStaffEmail();
+            if (!staff) {
+                showToast('Sign in required.', 'danger');
+                return;
+            }
+            const base = window.location.protocol === 'file:' ? 'http://127.0.0.1:5000' : '';
+            const url = base + '/api/agent/customer-tickets?staff_email=' + encodeURIComponent(staff) + '&q=' + encodeURIComponent(q);
+            const tbody = document.getElementById('pdCustomerTicketsBody');
+            const tl = document.getElementById('pdCustomerTimeline');
+            if (tbody) tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">Loading…</td></tr>';
+            if (tl) tl.innerHTML = '';
+            fetch(url)
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (!data.success) {
+                        showToast(data.message || 'Lookup failed', 'danger');
+                        if (tbody) tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">No data.</td></tr>';
+                        return;
+                    }
+                    const tickets = data.tickets || [];
+                    if (!tickets.length) {
+                        if (tbody) tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">No tickets found.</td></tr>';
+                        if (tl) tl.innerHTML = '<p class="text-muted mb-0">No timeline events.</p>';
+                        return;
+                    }
+                    if (tbody) {
+                        tbody.innerHTML = tickets.map(function (t) {
+                            const id = escapeHtml(t.public_ticket_id || '');
+                            const sub = escapeHtml(t.subject || '');
+                            const st = escapeHtml(t.status || '');
+                            const upd = t.updated_at || t.created_at ? new Date(t.updated_at || t.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+                            return '<tr class="cursor-pointer" style="cursor:pointer" onclick="openTicketModal(' + Number(t.id) + ')"><td class="ps-3 fw-semibold text-primary">' + id + '</td><td><div class="text-truncate" style="max-width:220px">' + sub + '</div></td><td><span class="small">' + st + '</span></td><td class="text-muted small">' + upd + '</td></tr>';
+                        }).join('');
+                    }
+                    const sorted = tickets.slice().sort(function (a, b) {
+                        return new Date(a.created_at || 0) - new Date(b.created_at || 0);
+                    });
+                    if (tl) {
+                        tl.innerHTML = sorted.map(function (t) {
+                            const when = t.created_at ? new Date(t.created_at).toLocaleString() : '—';
+                            return '<div class="border-start border-3 border-primary ps-2 mb-3"><div class="text-muted" style="font-size:11px">' + escapeHtml(when) + '</div><div class="fw-semibold">' + escapeHtml(t.public_ticket_id || '') + '</div><div class="text-muted">' + escapeHtml(t.subject || '') + '</div><div class="small mt-1"><span class="badge bg-light text-dark border">' + escapeHtml(t.status || '') + '</span></div></div>';
+                        }).join('');
+                    }
+                    window.__pdCustomerTicketsCache = tickets;
+                    window.loadedTickets = tickets;
+                })
+                .catch(function () {
+                    showToast('Network error', 'danger');
+                    if (tbody) tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">Error loading.</td></tr>';
+                });
+        }
+
+        function pdNavigate(routeSlug, opts) {
+            opts = opts || {};
+            const prevKey = window.__pdFilterStorageKey;
+            if (prevKey) pdSaveModuleFilters(prevKey);
+
+            const cfg = PD_ROUTE_CONFIG[routeSlug] || PD_ROUTE_CONFIG.dashboard;
+            window.__pdCurrentRoute = routeSlug;
+            window.__pdFilterStorageKey = cfg.filterKey;
+            pdSetActiveNav(routeSlug);
+            const titleEl = document.getElementById('pdPageTitle');
+            const subEl = document.getElementById('pdPageSubtitle');
+            if (titleEl) titleEl.textContent = cfg.title;
+            if (subEl) subEl.textContent = cfg.subtitle || '';
+
+            const searchEl = document.getElementById('pdContextSearch');
+            if (searchEl) {
+                searchEl.placeholder = cfg.searchPh || 'Search…';
+                if (!opts.skipFilterRestore) pdRestoreModuleFilters(cfg.filterKey);
+                if (cfg.ticketUi) pdSyncSearchToHidden();
+            }
+
+            const panel = document.getElementById('pdRoutePanel');
+            if (panel) panel.classList.add('pd-out');
+            pdShowSkeleton(true);
+
+            const kpi = document.getElementById('dashboard-kpis');
+            const met = document.getElementById('dashboard-metrics-row');
+            const qcard = document.getElementById('pdQueueCard');
+            const kb = document.getElementById('pdKbPanel');
+            const cust = document.getElementById('pdCustomerPanel');
+            const ticketUi = !!cfg.ticketUi;
+            if (kpi) kpi.classList.toggle('d-none', !cfg.kpi);
+            if (met) met.classList.toggle('d-none', !cfg.metrics);
+            if (qcard) qcard.classList.toggle('d-none', !ticketUi);
+            if (kb) kb.classList.toggle('d-none', routeSlug !== 'knowledge-base');
+            if (cust) cust.classList.toggle('d-none', routeSlug !== 'customer-history');
+
+            const roToolbar = !!cfg.readOnly;
+            const fwd = document.getElementById('btnForwardBatch');
+            const slaW = document.getElementById('pdSlaRiskWrap');
+            if (fwd) fwd.classList.toggle('d-none', roToolbar);
+            if (slaW) slaW.classList.toggle('d-none', roToolbar);
+
+            if (routeSlug === 'knowledge-base') pdRenderKbFilter();
+
+            const dataPromise = ticketUi ? loadTickets(cfg.queue) : Promise.resolve();
+            Promise.all([pdDelay(300), dataPromise]).then(function () {
+                pdShowSkeleton(false);
+                if (panel) panel.classList.remove('pd-out');
+                pdCloseDrawer();
+            });
+        }
+
+        function pdOnHashChange() {
+            const slug = pdRouteFromHash();
+            pdNavigate(slug, { replace: true, skipFilterRestore: false });
+        }
+
+        function assignToMeFromQueue(ticketId) {
+            const agent = getStaffDisplayName();
+            if (!agent) {
+                showToast('Display name not set', 'danger');
+                return;
+            }
+            const base = window.location.protocol === 'file:' ? 'http://127.0.0.1:5000' : '';
+            fetch(base + '/api/tickets/' + encodeURIComponent(ticketId) + '/action', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'assign_self', agent: agent })
+            })
+                .then(function (r) { return r.json(); })
+                .then(function (resp) {
+                    if (resp.success) {
+                        showToast('Ticket assigned to you.', 'success');
+                        loadTickets(window.__lastTicketQueue || 'unassigned');
+                    } else {
+                        showToast(resp.message || 'Could not assign', 'danger');
+                    }
+                })
+                .catch(function () { showToast('Network error', 'danger'); });
+        }
+
+        function escapeHtml(str) {
+            if (str == null) return '';
+            const d = document.createElement('div');
+            d.textContent = str;
+            return d.innerHTML;
+        }
+
+        function safeHttpUrl(str) {
+            try {
+                const u = new URL(str.trim());
+                return u.protocol === 'http:' || u.protocol === 'https:' ? u.href : '';
+            } catch (e) {
+                return '';
+            }
+        }
+
+        function attachmentExtLabel(nameOrUrl) {
+            const base = (nameOrUrl || '').trim().split('/').pop() || '';
+            const i = base.lastIndexOf('.');
+            return i > 0 ? base.slice(i + 1).toLowerCase() : '';
+        }
+
+        function attachmentIconParts(ext) {
+            const e = (ext || '').toLowerCase();
+            if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp'].includes(e))
+                return { wrap: 'ent-attachment-row-icon ent-att-img', icon: 'bi-image' };
+            if (e === 'pdf')
+                return { wrap: 'ent-attachment-row-icon ent-att-pdf', icon: 'bi-file-earmark-pdf' };
+            if (['doc', 'docx', 'txt', 'rtf', 'md'].includes(e))
+                return { wrap: 'ent-attachment-row-icon ent-att-doc', icon: 'bi-file-earmark-text' };
+            if (['xls', 'xlsx', 'csv'].includes(e))
+                return { wrap: 'ent-attachment-row-icon ent-att-doc', icon: 'bi-file-earmark-spreadsheet' };
+            if (['zip', 'rar', '7z', 'gz'].includes(e))
+                return { wrap: 'ent-attachment-row-icon ent-att-doc', icon: 'bi-file-earmark-zip' };
+            return { wrap: 'ent-attachment-row-icon', icon: 'bi-file-earmark' };
+        }
+
+        function hrefAttr(u) {
+            return String(u).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+        }
+
+        let __attachmentDetailCopyText = '';
+        window.__ticketAttachForCopy = [];
+
+        function openAttachmentDetailModal(displayName) {
+            __attachmentDetailCopyText = displayName || '';
+            const ext = attachmentExtLabel(displayName);
+            document.getElementById('attachmentDetailType').textContent = ext ? ext.toUpperCase() : 'FILE';
+            document.getElementById('attachmentDetailName').textContent = displayName || '';
+            const btn = document.getElementById('attachmentDetailCopyBtn');
+            btn.onclick = () => {
+                navigator.clipboard.writeText(__attachmentDetailCopyText).then(() => {
+                    showToast('File name copied', 'success');
+                }).catch(() => showToast('Could not copy', 'danger'));
+            };
+            const m = new bootstrap.Modal(document.getElementById('attachmentDetailModal'));
+            m.show();
+        }
+
+        function openAttachmentDetailModalByIdx(idx) {
+            const a = window.__ticketAttachForCopy[idx];
+            if (a && !a.url && !a.stored) openAttachmentDetailModal(a.displayName);
+        }
+
+        function openStoredAttachmentPreview(idx) {
+            const a = window.__ticketAttachForCopy[idx];
+            if (!a || !a.stored || !a.viewUrl) return;
+            const mime = (a.mime || '').toLowerCase();
+            const name = (a.displayName || '').toLowerCase();
+            const body = document.getElementById('attachmentPreviewBody');
+            const title = document.getElementById('attachmentPreviewTitle');
+            title.textContent = a.displayName || 'Preview';
+            body.innerHTML = '';
+            const u = hrefAttr(a.viewUrl);
+            const du = hrefAttr(a.downloadUrl);
+            if (mime.startsWith('image/')) {
+                body.innerHTML = `<div class="p-3 text-center"><img src="${u}" class="img-fluid rounded shadow-sm" alt=""></div>`;
+            } else if (mime === 'application/pdf' || name.endsWith('.pdf')) {
+                body.innerHTML = `<iframe class="ent-attachment-preview-frame" src="${u}#toolbar=1" title="PDF preview"></iframe>`;
+            } else if (mime.startsWith('text/')) {
+                body.innerHTML = `<iframe class="ent-attachment-preview-frame" src="${u}" title="Text preview"></iframe>`;
+            } else {
+                body.innerHTML = `<div class="p-4 text-center"><p class="text-muted mb-3">No in-browser preview for this type.</p><a class="btn btn-primary me-2" href="${u}" target="_blank" rel="noopener noreferrer">Open in new tab</a><a class="btn btn-outline-secondary" href="${du}" target="_blank" rel="noopener noreferrer">Download</a></div>`;
+            }
+            const modalEl = document.getElementById('attachmentPreviewModal');
+            let m = bootstrap.Modal.getInstance(modalEl);
+            if (!m) m = new bootstrap.Modal(modalEl);
+            m.show();
+        }
+
+        function copyAttachmentNameByIdx(idx) {
+            const a = window.__ticketAttachForCopy[idx];
+            if (!a || a.url || a.stored) return;
+            navigator.clipboard.writeText(a.displayName).then(() => showToast('File name copied', 'success')).catch(() => showToast('Could not copy', 'danger'));
+        }
+
+        function getStaffEmail() {
+            try {
+                const u = JSON.parse(localStorage.getItem('nexus_user') || '{}');
+                if (u.email) return String(u.email).trim();
+            } catch (e) {}
+            return '';
+        }
+
+        function apiOrigin() {
+            return window.location.protocol === 'file:' ? 'http://127.0.0.1:5000' : '';
+        }
+
+        function populateFilterPrioritySelect(sel) {
+            if (!sel) return;
+            const cur = sel.value;
+            const pri = (window.__portalSlaSettings && window.__portalSlaSettings.sla && window.__portalSlaSettings.sla.priorities) || [];
+            sel.innerHTML = '<option value="">Priority: All</option>';
+            pri.forEach(p => {
+                const o = document.createElement('option');
+                o.value = p;
+                o.textContent = p;
+                sel.appendChild(o);
+            });
+            if (cur && [...sel.options].some(o => o.value === cur)) sel.value = cur;
+        }
+
+        function defaultTicketCategoriesFallback() {
+            return ['Infrastructure', 'Security', 'Database', 'Other'];
+        }
+
+        function refreshCreateTicketCategorySelect() {
+            const sel = document.getElementById('newTktCategory');
+            if (!sel) return;
+            const cats = (window.__portalSlaSettings && window.__portalSlaSettings.categories) || [];
+            const list = Array.isArray(cats) && cats.length ? cats : defaultTicketCategoriesFallback();
+            const defCat = ((window.__portalSlaSettings && window.__portalSlaSettings.defaultCategory) || '').trim();
+            const prev = sel.value;
+            sel.innerHTML = '';
+            list.forEach(function (c) {
+                const o = document.createElement('option');
+                o.value = c;
+                o.textContent = c;
+                sel.appendChild(o);
+            });
+            let pick = '';
+            if (defCat && [...sel.options].some(o => o.value === defCat)) pick = defCat;
+            else if (prev && [...sel.options].some(o => o.value === prev)) pick = prev;
+            else if (sel.options.length) pick = sel.options[0].value;
+            if (pick) sel.value = pick;
+        }
+
+        function loadPortalTicketSettingsForTicketList() {
+            const staff = getStaffEmail();
+            if (!staff) return Promise.resolve();
+            const base = apiOrigin();
+            return fetch(`${base}/api/settings/tickets?staff_email=${encodeURIComponent(staff)}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success && data.settings) {
+                        window.__portalSlaSettings = data.settings;
+                        populateFilterPrioritySelect(document.getElementById('filterPriority'));
+                        refreshCreateTicketCategorySelect();
+                    }
+                })
+                .catch(() => {});
+        }
+
+        function renderTicketAttachments(containerEl, ticket) {
+            if (!containerEl) return;
+            const tid = ticket && ticket.id;
+            const metaRaw = ticket && ticket.attachments_meta != null ? ticket.attachments_meta : '';
+            const ad = ticket && ticket.attachments_data;
+            const staffEmail = getStaffEmail();
+
+            if (Array.isArray(ad) && ad.length && tid) {
+                if (!staffEmail) {
+                    containerEl.innerHTML = '<div class="ent-attachment-empty text-warning"><i class="bi bi-shield-lock me-1"></i>Sign in again to view or download uploaded files.</div>';
+                    window.__ticketAttachForCopy = [];
+                    return;
+                }
+                const base = apiOrigin();
+                window.__ticketAttachForCopy = ad.map((entry, idx) => ({
+                    displayName: entry.name || ('File ' + (idx + 1)),
+                    url: null,
+                    stored: true,
+                    mime: (entry.mime || '').toLowerCase(),
+                    viewUrl: `${base}/api/tickets/${tid}/attachments/${idx}?staff_email=${encodeURIComponent(staffEmail)}`,
+                    downloadUrl: `${base}/api/tickets/${tid}/attachments/${idx}?staff_email=${encodeURIComponent(staffEmail)}&download=1`,
+                }));
+                let html = '<div class="ent-attachment-list">';
+                window.__ticketAttachForCopy.forEach((att, idx) => {
+                    const ext = attachmentExtLabel(att.displayName);
+                    const { wrap, icon } = attachmentIconParts(ext);
+                    html += '<div class="ent-attachment-row">';
+                    html += `<div class="${wrap}"><i class="bi ${icon}"></i></div>`;
+                    html += '<div class="ent-attachment-row-meta">';
+                    html += `<div class="ent-attachment-row-name">${escapeHtml(att.displayName)}</div>`;
+                    html += '<div class="ent-attachment-row-sub">Uploaded file</div>';
+                    html += '</div><div class="ent-attachment-row-actions">';
+                    html += `<button type="button" class="btn btn-outline-primary btn-sm" onclick="openStoredAttachmentPreview(${idx})"><i class="bi bi-eye me-1"></i>View</button>`;
+                    html += `<a class="btn btn-outline-secondary btn-sm" href="${hrefAttr(att.downloadUrl)}" target="_blank" rel="noopener noreferrer"><i class="bi bi-download me-1"></i>Download</a>`;
+                    html += '</div></div>';
+                });
+                html += '</div>';
+                containerEl.innerHTML = html;
+                return;
+            }
+
+            const raw = (metaRaw == null ? '' : String(metaRaw)).trim();
+            if (!raw) {
+                containerEl.innerHTML = '<div class="ent-attachment-empty"><i class="bi bi-cloud-slash me-1"></i>No files attached to this case.</div>';
+                window.__ticketAttachForCopy = [];
+                return;
+            }
+            const parts = raw.split(',').map(s => s.trim()).filter(Boolean);
+            window.__ticketAttachForCopy = parts.map((item) => {
+                const url = safeHttpUrl(item);
+                return {
+                    url: url || null,
+                    stored: false,
+                    displayName: url ? (item.trim().split('/').pop() || item) : item
+                };
+            });
+            let html = '<div class="ent-attachment-list">';
+            window.__ticketAttachForCopy.forEach((att, idx) => {
+                const ext = attachmentExtLabel(att.displayName);
+                const { wrap, icon } = attachmentIconParts(ext);
+                html += '<div class="ent-attachment-row">';
+                html += `<div class="${wrap}"><i class="bi ${icon}"></i></div>`;
+                html += '<div class="ent-attachment-row-meta">';
+                html += `<div class="ent-attachment-row-name">${escapeHtml(att.displayName)}</div>`;
+                html += `<div class="ent-attachment-row-sub">${att.url ? 'Linked file' : 'Reference name'}</div>`;
+                html += '</div><div class="ent-attachment-row-actions">';
+                if (att.url) {
+                    const hu = hrefAttr(att.url);
+                    html += `<a class="btn btn-outline-primary btn-sm" href="${hu}" target="_blank" rel="noopener noreferrer"><i class="bi bi-box-arrow-up-right me-1"></i>View</a>`;
+                    html += `<a class="btn btn-outline-secondary btn-sm" href="${hu}" download target="_blank" rel="noopener noreferrer"><i class="bi bi-download me-1"></i>Download</a>`;
+                } else {
+                    html += `<button type="button" class="btn btn-outline-primary btn-sm" onclick="openAttachmentDetailModalByIdx(${idx})"><i class="bi bi-eye me-1"></i>View</button>`;
+                    html += `<button type="button" class="btn btn-outline-secondary btn-sm" onclick="copyAttachmentNameByIdx(${idx})"><i class="bi bi-clipboard me-1"></i>Copy</button>`;
+                }
+                html += '</div></div>';
+            });
+            html += '</div>';
+            containerEl.innerHTML = html;
+        }
+
+        function showToast(message, type = 'primary') {
+            const toastEl = document.getElementById('liveToast');
+            document.getElementById('toastMessage').innerText = message;
+
+            // Swap colors
+            toastEl.className = `toast align-items-center text-white bg-${type} border-0`;
+
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
+        }
+
+        function formatSlaDue(ts) {
+            if (ts == null || ts === '') return '—';
+            try {
+                const d = new Date(ts);
+                return isNaN(d.getTime()) ? '—' : d.toLocaleString();
+            } catch (e) {
+                return '—';
+            }
+        }
+
+        function getStaffDisplayName() {
+            try {
+                const u = JSON.parse(localStorage.getItem('nexus_user') || '{}');
+                if (u.name) return u.name;
+            } catch (e) {}
+            return 'Staff';
+        }
+
+        function getStaffRole() {
+            try {
+                const u = JSON.parse(localStorage.getItem('nexus_user') || '{}');
+                const r = (u.role || '').toString().trim();
+                if (/^manager$/i.test(r)) return 'Manager';
+                if (/^agent$/i.test(r)) return 'Agent';
+                return r;
+            } catch (e) {
+                return '';
+            }
+        }
+
+        function clearApprovalCountdown() {
+            if (window.__apprCountdownTimer) {
+                clearInterval(window.__apprCountdownTimer);
+                window.__apprCountdownTimer = null;
+            }
+        }
+
+        function defaultApprovalDueLocal() {
+            const d = new Date();
+            d.setDate(d.getDate() + 1);
+            d.setHours(17, 0, 0, 0);
+            const p = n => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+        }
+
+        function loadManagerEmailDatalist() {
+            const dl = document.getElementById('managerEmailDatalist');
+            if (!dl) return;
+            const base = window.location.protocol === 'file:' ? 'http://127.0.0.1:5000' : '';
+            fetch(`${base}/api/users`)
+                .then(r => r.json())
+                .then(users => {
+                    dl.innerHTML = '';
+                    (Array.isArray(users) ? users : []).filter(u => /^manager$/i.test(String(u.role || '').trim()) && u.is_active !== false && u.email).forEach(u => {
+                        const o = document.createElement('option');
+                        o.value = u.email;
+                        o.label = u.name ? `${u.name} (${u.email})` : u.email;
+                        dl.appendChild(o);
+                    });
+                })
+                .catch(() => {});
+        }
+
+        function renderApprovalPanelFromHistory(approvals, ticket) {
+            clearApprovalCountdown();
+            const me = getStaffDisplayName().trim();
+            const assignee = (ticket.assigned_to || '').trim();
+            const isAssignee = assignee === me;
+            const canManageApproval = isAssignee || getStaffRole() === 'Manager';
+            const pending = [...approvals].reverse().find(a => a.status === 'pending');
+            const last = approvals.length ? approvals[approvals.length - 1] : null;
+
+            const badge = document.getElementById('approvalStatusBadge');
+            const form = document.getElementById('approvalRequestForm');
+            const pendAct = document.getElementById('approvalPendingActions');
+            const hint = document.getElementById('approvalAssigneeHint');
+            const wrap = document.getElementById('approvalCountdownWrap');
+            const ctext = document.getElementById('approvalCountdownText');
+
+            badge.className = 'ent-approval-badge ';
+            if (pending) {
+                badge.className += 'bg-warning bg-opacity-25 text-warning-emphasis';
+                badge.textContent = 'Pending manager approval';
+            } else if (last) {
+                if (last.status === 'approved') {
+                    badge.className += 'bg-success bg-opacity-15 text-success';
+                    badge.textContent = 'Approved';
+                } else if (last.status === 'rejected') {
+                    badge.className += 'bg-danger bg-opacity-15 text-danger';
+                    badge.textContent = 'Rejected';
+                } else if (last.status === 'rework') {
+                    badge.className += 'bg-warning bg-opacity-25 text-dark';
+                    badge.textContent = 'Rework requested';
+                } else if (last.status === 'cancelled') {
+                    badge.className += 'bg-secondary bg-opacity-15 text-secondary';
+                    badge.textContent = 'Cancelled';
+                } else {
+                    badge.className += 'bg-secondary bg-opacity-15 text-secondary';
+                    badge.textContent = last.status || '—';
+                }
+            } else {
+                badge.className += 'bg-secondary bg-opacity-15 text-secondary';
+                badge.textContent = 'Not requested';
+            }
+
+            const show = pending || last;
+            document.getElementById('approvalManagerDisplay').textContent = show ? (pending || last).manager_email : '—';
+            document.getElementById('approvalRequestedAt').textContent = show ? new Date((pending || last).created_at).toLocaleString() : '—';
+            document.getElementById('approvalDueDisplay').textContent = show && (pending || last).due_at
+                ? new Date((pending || last).due_at).toLocaleString() : '—';
+            const noteEl = document.getElementById('approvalManagerNote');
+            if (last && last.decided_at && last.manager_comment) {
+                noteEl.textContent = last.manager_comment;
+            } else if (last && last.status === 'cancelled') {
+                noteEl.textContent = last.manager_comment || '—';
+            } else {
+                noteEl.textContent = '—';
+            }
+
+            if (pending && pending.due_at) {
+                wrap.classList.remove('d-none');
+                const due = new Date(pending.due_at);
+                function tick() {
+                    const ms = due - new Date();
+                    if (ms <= 0) {
+                        ctext.textContent = 'Overdue — awaiting decision';
+                        return;
+                    }
+                    const h = Math.floor(ms / 3600000);
+                    const m = Math.floor((ms % 3600000) / 60000);
+                    const s = Math.floor((ms % 60000) / 1000);
+                    ctext.textContent = `${h}h ${m}m ${s}s until due`;
+                }
+                tick();
+                window.__apprCountdownTimer = setInterval(tick, 1000);
+            } else {
+                wrap.classList.add('d-none');
+            }
+
+            form.classList.add('d-none');
+            pendAct.classList.add('d-none');
+            hint.textContent = canManageApproval ? '' : 'Only the assigned agent or a manager can send or manage approval requests.';
+
+            if (!canManageApproval) return;
+
+            if (pending) {
+                pendAct.classList.remove('d-none');
+            } else {
+                form.classList.remove('d-none');
+                const dueInput = document.getElementById('approvalDueBy');
+                if (dueInput && !dueInput.value) dueInput.value = defaultApprovalDueLocal();
+            }
+        }
+
+        function submitApprovalRequest() {
+            const tktId = document.getElementById('activeTicketId').value;
+            const staff = getStaffEmail();
+            if (!tktId || !staff) return showToast('Sign in required.', 'danger');
+            const payload = {
+                staff_email: staff,
+                agent: getStaffDisplayName(),
+                manager_email: (document.getElementById('approvalManagerEmail').value || '').trim(),
+                cc_emails: (document.getElementById('approvalCcEmails').value || '').trim(),
+                reason: (document.getElementById('approvalReason').value || '').trim(),
+                message_to_manager: (document.getElementById('approvalMessage').value || '').trim(),
+                due_at: document.getElementById('approvalDueBy').value
+            };
+            const base = window.location.protocol === 'file:' ? 'http://127.0.0.1:5000' : '';
+            fetch(`${base}/api/tickets/${tktId}/approval/request`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.success) {
+                        showToast(data.message || 'Could not send approval', 'danger');
+                        return;
+                    }
+                    showToast('Approval request sent to manager.', 'success');
+                    const t = window.loadedTickets.find(x => String(x.id) === String(tktId));
+                    if (t) t.status = '⏳ Pending Manager Approval';
+                    document.getElementById('viewTktStatus').innerText = '⏳ Pending Manager Approval';
+                    document.getElementById('actionStatus').value = '⏳ Pending Manager Approval';
+                    document.getElementById('approvalReason').value = '';
+                    document.getElementById('approvalMessage').value = '';
+                    document.getElementById('approvalManagerEmail').value = '';
+                    document.getElementById('approvalCcEmails').value = '';
+                    openTicketModal(parseInt(tktId, 10));
+                })
+                .catch(() => showToast('Network error', 'danger'));
+        }
+
+        function cancelApprovalRequest() {
+            const tktId = document.getElementById('activeTicketId').value;
+            const staff = getStaffEmail();
+            if (!tktId || !staff) return;
+            if (!confirm('Cancel this approval request?')) return;
+            const base = window.location.protocol === 'file:' ? 'http://127.0.0.1:5000' : '';
+            fetch(`${base}/api/tickets/${tktId}/approval/cancel`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ staff_email: staff, agent: getStaffDisplayName() })
+            })
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.success) {
+                        showToast(data.message || 'Cancel failed', 'danger');
+                        return;
+                    }
+                    showToast('Approval request cancelled.', 'success');
+                    openTicketModal(parseInt(tktId, 10));
+                })
+                .catch(() => showToast('Network error', 'danger'));
+        }
+
+        function resendApprovalRequest() {
+            const tktId = document.getElementById('activeTicketId').value;
+            const staff = getStaffEmail();
+            if (!tktId || !staff) return;
+            const base = window.location.protocol === 'file:' ? 'http://127.0.0.1:5000' : '';
+            fetch(`${base}/api/tickets/${tktId}/approval/resend`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ staff_email: staff, agent: getStaffDisplayName() })
+            })
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.success) {
+                        showToast(data.message || 'Resend failed', 'danger');
+                        return;
+                    }
+                    showToast('Reminder email sent.', 'success');
+                })
+                .catch(() => showToast('Network error', 'danger'));
+        }
+
+        function submitTicketForward() {
+            const tktId = document.getElementById('activeTicketId').value;
+            const staff = getStaffEmail();
+            if (!tktId || !staff) {
+                showToast('Open a ticket and sign in.', 'danger');
+                return;
+            }
+            const to = (document.getElementById('forwardToEmails').value || '').trim();
+            if (!to) {
+                showToast('Enter at least one To address.', 'warning');
+                return;
+            }
+            const base = window.location.protocol === 'file:' ? 'http://127.0.0.1:5000' : '';
+            const fd = new FormData();
+            fd.append('staff_email', staff);
+            fd.append('agent', getStaffDisplayName());
+            fd.append('to_emails', to);
+            fd.append('cc_emails', (document.getElementById('forwardCcEmails').value || '').trim());
+            fd.append('message', (document.getElementById('forwardMessage').value || '').trim());
+            if (document.getElementById('forwardIncludeTicketAttachments').checked) {
+                fd.append('include_ticket_attachments', 'true');
+            }
+            const xf = document.getElementById('forwardExtraFiles');
+            if (xf && xf.files && xf.files.length) {
+                for (let i = 0; i < xf.files.length; i++) {
+                    fd.append('forward_files', xf.files[i]);
+                }
+            }
+            fetch(`${base}/api/tickets/${tktId}/forward`, { method: 'POST', body: fd })
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.success) {
+                        showToast(data.message || 'Forward failed', 'danger');
+                        return;
+                    }
+                    showToast(data.message || 'Forward queued.', 'success');
+                    document.getElementById('forwardMessage').value = '';
+                    document.getElementById('forwardExtraFiles').value = '';
+                    openTicketModal(parseInt(tktId, 10));
+                })
+                .catch(() => showToast('Network error', 'danger'));
+        }
+
+        function getForwardSelectedIds() {
+            return [...document.querySelectorAll('.forward-ticket-cb:checked')].map(function (cb) {
+                return cb.getAttribute('data-ticket-id');
+            }).filter(Boolean);
+        }
+        function updateForwardSelectionCount() {
+            const n = getForwardSelectedIds().length;
+            const el = document.getElementById('forwardSelectedCount');
+            if (el) el.textContent = String(n);
+            const btn = document.getElementById('btnForwardBatch');
+            if (btn) btn.disabled = n === 0;
+        }
+        function toggleForwardSelectAll(master) {
+            document.querySelectorAll('#ticketTableBody tr.ticket-row').forEach(function (row) {
+                if (row.style.display === 'none') return;
+                const cb = row.querySelector('.forward-ticket-cb');
+                if (cb) cb.checked = master.checked;
+            });
+            updateForwardSelectionCount();
+        }
+        function openForwardBatchModal() {
+            const ids = getForwardSelectedIds();
+            if (!ids.length) {
+                showToast('Select at least one ticket using the checkboxes in the first column.', 'warning');
+                return;
+            }
+            if (!getStaffEmail()) {
+                showToast('Sign in required.', 'danger');
+                return;
+            }
+            const cEl = document.getElementById('batchForwardTicketCount');
+            if (cEl) cEl.textContent = String(ids.length);
+            const el = document.getElementById('forwardBatchModal');
+            if (el && window.bootstrap) new bootstrap.Modal(el).show();
+        }
+        function submitTicketForwardBatch() {
+            const ids = getForwardSelectedIds();
+            const staff = getStaffEmail();
+            if (!ids.length || !staff) {
+                showToast('Select tickets and sign in.', 'danger');
+                return;
+            }
+            const to = (document.getElementById('batchForwardToEmails').value || '').trim();
+            if (!to) {
+                showToast('Enter at least one To address.', 'warning');
+                return;
+            }
+            const base = window.location.protocol === 'file:' ? 'http://127.0.0.1:5000' : '';
+            const fd = new FormData();
+            fd.append('staff_email', staff);
+            fd.append('agent', getStaffDisplayName());
+            fd.append('to_emails', to);
+            fd.append('cc_emails', (document.getElementById('batchForwardCcEmails').value || '').trim());
+            fd.append('message', (document.getElementById('batchForwardMessage').value || '').trim());
+            ids.forEach(function (id) { fd.append('ticket_ids', id); });
+            if (document.getElementById('batchForwardIncludeTicketAttachments').checked) {
+                fd.append('include_ticket_attachments', 'true');
+            }
+            const xf = document.getElementById('batchForwardExtraFiles');
+            if (xf && xf.files && xf.files.length) {
+                for (let i = 0; i < xf.files.length; i++) {
+                    fd.append('forward_files', xf.files[i]);
+                }
+            }
+            fetch(`${base}/api/tickets/forward-batch`, { method: 'POST', body: fd })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (!data.success) {
+                        showToast(data.message || 'Forward failed', 'danger');
+                        return;
+                    }
+                    showToast(data.message || 'Forward queued.', 'success');
+                    document.getElementById('batchForwardMessage').value = '';
+                    document.getElementById('batchForwardExtraFiles').value = '';
+                    const m = document.getElementById('forwardBatchModal');
+                    if (m && window.bootstrap) {
+                        const inst = bootstrap.Modal.getInstance(m);
+                        if (inst) inst.hide();
+                    }
+                    document.querySelectorAll('.forward-ticket-cb:checked').forEach(function (cb) { cb.checked = false; });
+                    const sa = document.getElementById('forwardSelectAll');
+                    if (sa) sa.checked = false;
+                    updateForwardSelectionCount();
+                    loadTickets(window.__lastTicketQueue || 'myqueue');
+                })
+                .catch(function () { showToast('Network error', 'danger'); });
+        }
+
+        function populateAssigneeSelect(selectEl, currentValue) {
+            if (!selectEl) return Promise.resolve();
+            const base = window.location.protocol === 'file:' ? 'http://127.0.0.1:5000' : '';
+            return fetch(`${base}/api/users`)
+                .then(r => r.json())
+                .then(users => {
+                    const active = (Array.isArray(users) ? users : []).filter(u => u.is_active !== false);
+                    selectEl.innerHTML = '<option value="">Unassigned</option>';
+                    active.forEach(u => {
+                        if (!u.name) return;
+                        const opt = document.createElement('option');
+                        opt.value = u.name;
+                        opt.textContent = u.name;
+                        selectEl.appendChild(opt);
+                    });
+                    const cur = currentValue || '';
+                    if (cur && ![...selectEl.options].some(o => o.value === cur)) {
+                        const opt = document.createElement('option');
+                        opt.value = cur;
+                        opt.textContent = cur + ' (not in directory)';
+                        selectEl.appendChild(opt);
+                    }
+                    selectEl.value = cur;
+                })
+                .catch(() => {
+                    selectEl.innerHTML = '<option value="">Unassigned</option>';
+                    const cur = currentValue || '';
+                    if (cur) {
+                        const opt = document.createElement('option');
+                        opt.value = cur;
+                        opt.textContent = cur;
+                        selectEl.appendChild(opt);
+                    }
+                    selectEl.value = cur;
+                });
+        }
+
+        function requireAuthAgent() {
+            try {
+                const u = JSON.parse(localStorage.getItem('nexus_user') || '{}');
+                const role = (u.role || '').toString().trim();
+                if (!u.email || !/^agent$/i.test(role)) {
+                    window.location.href = 'login.html';
+                    return false;
+                }
+            } catch (e) {
+                window.location.href = 'login.html';
+                return false;
+            }
+            return true;
+        }
+
+        function renderCurrentUser() {
+            try {
+                const userJSON = localStorage.getItem('nexus_user');
+                if (userJSON) {
+                    const user = JSON.parse(userJSON);
+                    document.getElementById('sidebar-user-name').innerText = user.name;
+                    document.getElementById('sidebar-user-role').innerText = user.role;
+                    document.getElementById('sidebar-user-initial').innerText = user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                    document.getElementById('profile-modal-name').innerText = user.name;
+                    document.getElementById('profile-modal-email').innerText = user.email || 'N/A';
+                    document.getElementById('profile-modal-role').innerText = user.role;
+                    document.getElementById('profile-modal-initial').innerText = user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                    const dn = document.getElementById('profileDisplayName');
+                    if (dn) dn.value = user.name;
+                }
+            } catch (e) {}
+        }
+
+        function logout() {
+            localStorage.removeItem('nexus_user');
+            window.location.href = 'login.html';
+        }
+
+        function saveProfileSettings() {
+            const el = document.getElementById('profileDisplayName');
+            const trimmed = (el && el.value ? el.value : '').trim();
+            if (!trimmed) return showToast('Display name is required', 'warning');
+            const user = JSON.parse(localStorage.getItem('nexus_user') || '{}');
+            if (!user.email) return showToast('User context not found', 'danger');
+
+            const apiUrl = window.location.protocol === 'file:' ? 'http://127.0.0.1:5000/api/profile/settings' : '/api/profile/settings';
+            fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: user.email, name: trimmed })
+            })
+            .then(async res => {
+                const data = await res.json().catch(() => ({}));
+                if (res.ok && data.success) {
+                    user.name = data.name || trimmed;
+                    localStorage.setItem('nexus_user', JSON.stringify(user));
+                    renderCurrentUser();
+                    showToast('Profile updated', 'success');
+                } else {
+                    showToast(data.message || 'Could not update profile', 'danger');
+                }
+            })
+            .catch(() => showToast('Network error', 'danger'));
+        }
+
+        function updatePassword() {
+            const old_password = document.getElementById('profileOldPassword').value;
+            const new_password = document.getElementById('profileNewPassword').value;
+            const confirm = document.getElementById('profileNewPasswordConfirm').value;
+            if (!old_password || !new_password) return showToast('Please fill all password fields', 'warning');
+            if (new_password !== confirm) return showToast('New password and confirmation do not match', 'warning');
+
+            const user = JSON.parse(localStorage.getItem('nexus_user') || '{}');
+            if (!user.email) return showToast('User context not found', 'danger');
+
+            const apiUrl = window.location.protocol === 'file:' ? 'http://127.0.0.1:5000/api/profile/password' : '/api/profile/password';
+            fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: user.email, old_password, new_password })
+            })
+            .then(async res => {
+                const data = await res.json().catch(() => ({}));
+                if (res.ok && data.success) {
+                    showToast('Password updated successfully!', 'success');
+                    document.getElementById('profileOldPassword').value = '';
+                    document.getElementById('profileNewPassword').value = '';
+                    document.getElementById('profileNewPasswordConfirm').value = '';
+                } else {
+                    showToast(data.message || 'Failed to update password', 'danger');
+                }
+            })
+            .catch(() => showToast('Network error', 'danger'));
+        }
+
+        function submitEnterpriseTicket() {
+            const apiUrl = window.location.protocol === 'file:' ? 'http://127.0.0.1:5000/api/tickets' : '/api/tickets';
+            const fd = new FormData();
+            fd.append('name', document.getElementById('newTktName').value || 'Enterprise Client');
+            fd.append('email', document.getElementById('newTktEmail').value || 'enterprise@client.com');
+            fd.append('cc', '');
+            fd.append('phone', '');
+            fd.append('priority', document.getElementById('newTktPriority').value);
+            fd.append('category', document.getElementById('newTktCategory').value);
+            fd.append('subject', document.getElementById('newTktSubject').value || 'Enterprise Request');
+            fd.append('description', document.getElementById('newTktDesc').value || 'No description provided.');
+            const staffEm = getStaffEmail();
+            if (staffEm) fd.append('staff_email', staffEm);
+            const nf = document.getElementById('newTktFileInput');
+            if (nf && nf.files) {
+                for (let i = 0; i < nf.files.length; i++) fd.append('files', nf.files[i]);
+            }
+
+            fetch(apiUrl, { method: 'POST', body: fd })
+            .then(async res => {
+                const isJson = res.headers.get('content-type')?.includes('application/json');
+                const resp = isJson ? await res.json() : null;
+                if (res.status === 413) {
+                    showToast('Upload too large (max 25 MB). Remove some files.', 'danger');
+                    return;
+                }
+                if (res.ok && resp && resp.success) {
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('createTicketModal'));
+                    if (modal) modal.hide();
+                    showToast(`Enterprise Ticket ${resp.ticket_id} created successfully!`, 'success');
+                    document.getElementById('newTktName').value = '';
+                    document.getElementById('newTktEmail').value = '';
+                    document.getElementById('newTktSubject').value = '';
+                    document.getElementById('newTktDesc').value = '';
+                    if (nf) nf.value = '';
+                    loadTickets(window.__lastTicketQueue || 'myqueue');
+                } else {
+                    showToast((resp && resp.message) || 'Failed to create ticket', 'danger');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showToast('Error creating ticket', 'danger');
+            });
+        }
+
+        function pdEnsureTicketTableHead(readOnly) {
+            const row = document.getElementById('pdTicketTableHeadRow');
+            if (!row) return;
+            const mode = readOnly ? 'ro' : 'norm';
+            if (window.__pdTicketHeadMode === mode) return;
+            window.__pdTicketHeadMode = mode;
+            if (readOnly) {
+                row.innerHTML = '<th class="ps-3 border-0">ID</th>'
+                    + '<th class="border-0">Priority</th>'
+                    + '<th class="border-0">Subject</th>'
+                    + '<th class="border-0">Customer</th>'
+                    + '<th class="border-0">Assignee</th>'
+                    + '<th class="border-0">Status</th>'
+                    + '<th class="border-0">Updated</th>'
+                    + '<th class="text-end border-0">View</th>';
+            } else {
+                row.innerHTML = '<th class="border-0 text-center" style="width:36px;" title="Select for batch forward">'
+                    + '<input type="checkbox" class="form-check-input m-0" id="forwardSelectAll" onchange="toggleForwardSelectAll(this)" aria-label="Select all visible">'
+                    + '</th>'
+                    + '<th class="ps-3 border-0">ID</th>'
+                    + '<th class="border-0">Priority</th>'
+                    + '<th class="border-0">Subject</th>'
+                    + '<th class="border-0">Customer</th>'
+                    + '<th class="border-0">Assignee</th>'
+                    + '<th class="border-0">Status</th>'
+                    + '<th class="border-0">Updated</th>'
+                    + '<th class="text-end border-0">Actions</th>';
+            }
+        }
+
+        function pdTicketTableColspan() {
+            const cfg = PD_ROUTE_CONFIG[window.__pdCurrentRoute] || {};
+            return cfg.readOnly ? 8 : 9;
+        }
+
+        function loadTickets(queue) {
+            if (queue == null || queue === '') queue = 'myqueue';
+            window.__lastTicketQueue = queue;
+            const routeCfg = PD_ROUTE_CONFIG[window.__pdCurrentRoute] || {};
+            const readOnly = !!routeCfg.readOnly;
+            const pickup = !!routeCfg.pickup;
+            const cc = readOnly ? 8 : 9;
+
+            const apiQueue = (queue === 'closed' || queue === 'resolved') ? 'all' : queue;
+            const agentQ = encodeURIComponent(getStaffDisplayName());
+            const sortEl = document.getElementById('ticketSortOrder');
+            const sortParam = (sortEl && sortEl.value === 'sla_resolution') ? '&sort=sla_resolution' : '';
+            const apiUrlTable = window.location.protocol === 'file:' ? `http://127.0.0.1:5000/api/tickets?queue=${apiQueue}&agent=${agentQ}${sortParam}` : `/api/tickets?queue=${apiQueue}&agent=${agentQ}${sortParam}`;
+
+            const tablePromise = fetch(apiUrlTable)
+                .then(res => res.json())
+                .then(data => {
+                    pdEnsureTicketTableHead(readOnly);
+                    window.loadedTickets = Array.isArray(data) ? data : [];
+                    const st = function (t) { return t.status || ''; };
+                    let displayTickets = window.loadedTickets;
+                    if (queue === 'closed') {
+                        displayTickets = window.loadedTickets.filter(function (t) { return st(t).includes('Closed'); });
+                    } else if (queue === 'resolved') {
+                        displayTickets = window.loadedTickets.filter(function (t) { return st(t).includes('Resolved'); });
+                    } else {
+                        displayTickets = window.loadedTickets.filter(function (t) {
+                            return !st(t).includes('Resolved') && !st(t).includes('Closed');
+                        });
+                    }
+
+                    const tbody = document.getElementById('ticketTableBody');
+                    if (!tbody) return;
+
+                    if (displayTickets.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="' + cc + '" class="text-center text-muted py-4">No tickets to display in this view.</td></tr>';
+                        updateForwardSelectionCount();
+                        return;
+                    }
+
+                    let html = '';
+                    displayTickets.forEach(function (ticket) {
+                        let priorityBadge = '';
+                        if (ticket.priority === 'Enterprise Critical' || ticket.priority === 'Urgent') {
+                            priorityBadge = '<span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2 py-1"><i class="bi bi-fire me-1"></i>' + ticket.priority + '</span>';
+                        } else if (ticket.priority === 'High') {
+                            priorityBadge = '<span class="badge bg-warning bg-opacity-10 text-dark border border-warning border-opacity-50 px-2 py-1"><i class="bi bi-arrow-up-circle me-1"></i>High</span>';
+                        } else {
+                            priorityBadge = '<span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1">' + (ticket.priority || 'Medium') + '</span>';
+                        }
+
+                        let statusBadge = '';
+                        const stRegex = (ticket.status || '').toLowerCase();
+                        if (stRegex.includes('submitted')) {
+                            statusBadge = '<span class="badge" style="background-color: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;"><i class="bi bi-record-circle me-1"></i>' + ticket.status + '</span>';
+                        } else if (stRegex.includes('working')) {
+                            statusBadge = '<span class="badge" style="background-color: #fefce8; color: #a16207; border: 1px solid #fef08a;"><i class="bi bi-arrow-clockwise me-1"></i>' + ticket.status + '</span>';
+                        } else if (stRegex.includes('waiting')) {
+                            statusBadge = '<span class="badge" style="background-color: #faf5ff; color: #7e22ce; border: 1px solid #e9d5ff;"><i class="bi bi-person-circle me-1"></i>' + ticket.status + '</span>';
+                        } else if (stRegex.includes('resolved') || stRegex.includes('closed')) {
+                            statusBadge = '<span class="badge" style="background-color: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0;"><i class="bi bi-check-circle-fill me-1"></i>' + ticket.status + '</span>';
+                        } else if (stRegex.includes('sla') || stRegex.includes('breach')) {
+                            statusBadge = '<span class="badge bg-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>' + ticket.status + '</span>';
+                        } else {
+                            statusBadge = '<span class="badge bg-secondary">' + ticket.status + '</span>';
+                        }
+
+                        const cname = ticket.customer_name || '';
+                        const cemail = ticket.customer_email || '';
+                        const searchBlob = ((ticket.public_ticket_id || '') + ' ' + (ticket.subject || '') + ' ' + cname + ' ' + cemail).toLowerCase();
+                        const av = (cname.charAt(0) || '?').toUpperCase();
+
+                        const pickupBtn = (pickup && !readOnly)
+                            ? '<button type="button" class="btn btn-sm btn-light border-0 px-2" onclick="assignToMeFromQueue(' + ticket.id + ')" title="Assign to me"><i class="bi bi-person-check-fill text-success"></i></button>'
+                            : '';
+                        const replyClass = pickupBtn ? 'btn btn-sm btn-light border-0 px-2 border-start' : 'btn btn-sm btn-light border-0 px-2';
+
+                        const chkCell = readOnly ? '' : ('<td class="text-center align-middle">'
+                            + '<input type="checkbox" class="form-check-input forward-ticket-cb m-0" data-ticket-id="' + ticket.id + '" onchange="updateForwardSelectionCount()" aria-label="Select for forward">'
+                            + '</td>');
+
+                        const actions = readOnly
+                            ? '<div class="btn-group shadow-none border rounded-pill overflow-hidden">'
+                                + '<button type="button" class="btn btn-sm btn-light border-0 px-3" onclick="openTicketModal(' + ticket.id + ')" title="View"><i class="bi bi-eye text-primary"></i></button>'
+                                + '</div>'
+                            : '<div class="btn-group shadow-none border rounded-pill overflow-hidden">'
+                                + pickupBtn
+                                + '<button type="button" class="' + replyClass + '" data-bs-toggle="modal" data-bs-target="#replyModal" title="Reply"><i class="bi bi-reply text-primary"></i></button>'
+                                + '<button type="button" class="btn btn-sm btn-light border-0 px-2 border-start" data-bs-toggle="modal" data-bs-target="#noteModal" title="Internal Note"><i class="bi bi-journal-plus text-warning"></i></button>'
+                                + '<button type="button" class="btn btn-sm btn-light border-0 px-2 border-start" onclick="openTicketModal(' + ticket.id + ')" title="Open"><i class="bi bi-box-arrow-up-right text-dark"></i></button>'
+                                + '</div>';
+
+                        html += '<tr class="transition-all hover-shadow-sm ticket-row" data-search="' + escapeHtml(searchBlob) + '" data-priority="' + escapeHtml(String(ticket.priority || '')) + '" data-status="' + escapeHtml(String(ticket.status || '')) + '">'
+                            + chkCell
+                            + '<td class="fw-semibold ps-3"><a href="javascript:void(0)" onclick="openTicketModal(' + ticket.id + ')" class="text-decoration-none text-primary fw-bold" style="letter-spacing: -0.5px;">' + ticket.public_ticket_id + '</a></td>'
+                            + '<td>' + priorityBadge + '</td>'
+                            + '<td class="fw-medium text-dark">'
+                            + '<div class="text-truncate" style="max-width: 250px;">' + (ticket.subject || '') + '</div>'
+                            + (ticket.attachments_meta ? '<i class="bi bi-paperclip text-muted small" title="Attachments: ' + String(ticket.attachments_meta).replace(/"/g, '&quot;') + '"></i>' : '')
+                            + '</td>'
+                            + '<td>'
+                            + '<div class="d-flex align-items-center">'
+                            + '<div class="bg-secondary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center text-secondary fw-bold me-2" style="width: 28px; height: 28px; font-size: 11px;">' + av + '</div>'
+                            + '<div>'
+                            + '<div class="fw-semibold text-dark" style="font-size: 0.9rem;">' + cname + '</div>'
+                            + '<div class="text-muted" style="font-size: 0.75rem;">' + cemail + '</div>'
+                            + '</div></div></td>'
+                            + '<td>'
+                            + (ticket.assigned_to ? '<span class="text-dark" style="font-size: 0.9rem;"><i class="bi bi-person-fill text-muted me-1"></i>' + ticket.assigned_to + '</span>' : '<span class="text-muted small italic">Unassigned</span>')
+                            + '</td>'
+                            + '<td>' + statusBadge + '</td>'
+                            + '<td class="text-muted" style="font-size: 0.85rem;"><i class="bi bi-clock me-1 opacity-50"></i>' + new Date(ticket.updated_at || ticket.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' }) + '</td>'
+                            + '<td class="text-end">' + actions + '</td>'
+                            + '</tr>';
+                    });
+                    tbody.innerHTML = html;
+                    const fs = document.getElementById('forwardSelectAll');
+                    if (fs) fs.checked = false;
+                    updateForwardSelectionCount();
+                    if (typeof applyFilters === 'function') applyFilters();
+                })
+                .catch(function (err) { console.error(err); });
+
+            const apiUrlStats = window.location.protocol === 'file:' ? `http://127.0.0.1:5000/api/tickets?queue=all&agent=${agentQ}` : `/api/tickets?queue=all&agent=${agentQ}`;
+            const statsPromise = fetch(apiUrlStats)
+                .then(res => res.json())
+                .then(function (data) {
+                    let openCount = 0;
+                    let criticalCount = 0;
+                    let dueTodayCount = 0;
+                    let waitingCount = 0;
+                    let resolvedCount = 0;
+                    const todayStr = new Date().toDateString();
+                    const me = getStaffDisplayName();
+
+                    (data || []).forEach(function (t) {
+                        const status = t.status || '';
+                        const isResolved = status.includes('Resolved') || status.includes('Closed');
+                        if (t.assigned_to === me && !isResolved) openCount++;
+                        if (['Enterprise Critical', 'High', 'Urgent'].includes(t.priority) && !isResolved) criticalCount++;
+                        if (status.includes('Waiting')) waitingCount++;
+                        if (isResolved) {
+                            const dateStr = new Date(t.updated_at || t.created_at).toDateString();
+                            if (dateStr === todayStr) resolvedCount++;
+                        }
+                        if (!isResolved && !status.includes('Waiting')) dueTodayCount++;
+                    });
+
+                    const k1 = document.getElementById('kpi-my-open');
+                    const k2 = document.getElementById('kpi-critical');
+                    const k3 = document.getElementById('kpi-due');
+                    const k4 = document.getElementById('kpi-waiting');
+                    const k5 = document.getElementById('kpi-resolved');
+                    if (k1) k1.innerText = openCount;
+                    if (k2) k2.innerText = criticalCount;
+                    if (k3) k3.innerText = dueTodayCount;
+                    if (k4) k4.innerText = waitingCount;
+                    if (k5) k5.innerText = resolvedCount;
+
+                    const sbMyQ = document.getElementById('sidebar-myqueue-count');
+                    if (sbMyQ) {
+                        sbMyQ.innerText = openCount;
+                        sbMyQ.style.display = openCount > 0 ? '' : 'none';
+                    }
+                })
+                .catch(function (err) { console.error(err); });
+
+            const apiMetricsUrl = window.location.protocol === 'file:' ? 'http://127.0.0.1:5000/api/metrics' : '/api/metrics';
+            const metricsPromise = fetch(apiMetricsUrl)
+                .then(res => res.json())
+                .then(function (metrics) {
+                    const mar = document.getElementById('metric-avg-response');
+                    const mre = document.getElementById('metric-resolution');
+                    const csatEl = document.getElementById('metric-csat');
+                    const csatSuf = document.getElementById('metric-csat-suffix');
+                    const mpr = document.getElementById('metric-productivity');
+                    if (mar) mar.innerText = metrics.avg_response_time_mins || 0;
+                    if (mre) mre.innerText = metrics.avg_resolution_time_hours || 0;
+                    if (csatSuf) csatSuf.style.display = '';
+                    if (csatEl) {
+                        const csat = metrics.csat_score;
+                        csatEl.innerText = (csat == null || csat === '') ? '0.0' : Number(csat).toFixed(1);
+                    }
+                    if (mpr) mpr.innerText = metrics.productivity_percent || 0;
+                })
+                .catch(function (err) { console.error(err); });
+
+            return Promise.all([tablePromise, statsPromise, metricsPromise]);
+        }
+
+        function openTicketModal(id) {
+            const ticket = window.loadedTickets.find(t => t.id === id);
+            if (!ticket) return;
+
+            document.getElementById('viewTktId').innerText = ticket.public_ticket_id;
+            document.getElementById('viewTktSubject').innerText = ticket.subject;
+            document.getElementById('viewTktStatus').innerText = ticket.status;
+            document.getElementById('viewTktCustomer').innerText = ticket.customer_name + " (" + ticket.customer_email + ")";
+            document.getElementById('viewTktPriority').innerText = ticket.priority || 'Medium';
+            document.getElementById('viewTktDesc').innerText = ticket.description || '';
+            // Update status dropdown
+            document.getElementById('actionStatus').value = ticket.status;
+            window.__pdStatusBeforeSelect = ticket.status;
+
+            renderTicketAttachments(document.getElementById('viewTktAttachments'), ticket);
+
+            document.getElementById('activeTicketId').value = ticket.id;
+            document.getElementById('viewTktHistory').innerHTML = '<div class="ent-history-loading"><span class="spinner-border spinner-border-sm text-primary"></span><div class="small text-muted mt-2">Synchronizing enterprise thread…</div></div>';
+
+            // Populate the new detailed sidebar
+            document.getElementById('viewSideTrackingId').innerText = ticket.public_ticket_id;
+            document.getElementById('viewSideTktNum').innerText = ticket.id;
+            document.getElementById('viewSideCreated').innerText = new Date(ticket.created_at).toLocaleString();
+            document.getElementById('viewSideUpdated').innerText = new Date(ticket.updated_at || ticket.created_at).toLocaleString();
+            document.getElementById('viewSideSlaFirst').innerText = formatSlaDue(ticket.sla_first_response_due);
+            document.getElementById('viewSideSlaResolve').innerText = formatSlaDue(ticket.sla_resolution_due);
+            const erEl = document.getElementById('viewSideExpectedRes');
+            const paEl = document.getElementById('viewSidePrimaryAnalysis');
+            if (erEl) erEl.innerText = ticket.expected_resolution || '—';
+            if (paEl) paEl.innerText = ticket.primary_analysis || '—';
+            document.getElementById('viewSideCategory').value = ticket.category;
+            // Safe fallback if category doesn't strictly match `<option>`
+            if(document.getElementById('viewSideCategory').value === '') document.getElementById('viewSideCategory').value = 'Other';
+            
+            document.getElementById('viewSidePriorityDropdown').value = ticket.priority || 'Medium';
+
+            const modalEl = document.getElementById('ticketViewModal');
+            let modal = bootstrap.Modal.getInstance(modalEl);
+            if (!modal) {
+                modal = new bootstrap.Modal(modalEl);
+            }
+            populateAssigneeSelect(document.getElementById('viewSideAssignee'), ticket.assigned_to || '').finally(() => {
+                modal.show();
+            });
+
+            // Load History
+            const apiUrl = window.location.protocol === 'file:' ? `http://127.0.0.1:5000/api/tickets/${ticket.id}/history` : `/api/tickets/${ticket.id}/history`;
+            fetch(apiUrl)
+                .then(res => res.json())
+                .then(data => {
+                    const replies = data.replies || [];
+                    const notes = data.notes || [];
+                    const approvals = data.approvals || [];
+                    document.getElementById('viewSideReplies').innerText = replies.length;
+                    document.getElementById('viewSideLastReply').innerText = replies.length > 0 ? replies[replies.length - 1].sender_type : ticket.customer_name;
+                    let historyHtml = '';
+                    const allEvents = [];
+                    replies.forEach(r => allEvents.push({...r, type: 'reply', date: new Date(r.created_at)}));
+                    notes.forEach(n => {
+                        const act = n.action || '';
+                        if (act.startsWith('[FORWARD]')) {
+                            allEvents.push({
+                                ...n,
+                                type: 'forward',
+                                forwardDetail: act.replace(/^\[FORWARD\]\s*/, ''),
+                                date: new Date(n.created_at)
+                            });
+                        } else {
+                            allEvents.push({...n, type: 'note', date: new Date(n.created_at)});
+                        }
+                    });
+                    approvals.forEach(ap => {
+                        allEvents.push({ type: 'approval', sub: 'requested', date: new Date(ap.created_at), ap });
+                        if (ap.decided_at) {
+                            allEvents.push({ type: 'approval', sub: 'decided', date: new Date(ap.decided_at), ap });
+                        }
+                    });
+
+                    allEvents.sort((a, b) => a.date - b.date);
+
+                    allEvents.forEach(ev => {
+                        const timeStr = ev.date.toLocaleString();
+                        if (ev.type === 'reply') {
+                            const isAgent = (ev.sender_type || '').toLowerCase().includes('agent');
+                            historyHtml += `
+                                <div class="ent-thread-card">
+                                    <div class="ent-thread-head">
+                                        <div>
+                                            <div class="ent-thread-role">${isAgent ? 'Support engineer' : 'Correspondence'}</div>
+                                            <div class="ent-thread-author"><i class="bi bi-person-badge me-1 text-primary"></i>${escapeHtml(ev.sender_type)} <span class="text-muted fw-normal">· ${escapeHtml(ev.sender_email || 'System')}</span></div>
+                                        </div>
+                                        <span class="ent-thread-meta">${timeStr}</span>
+                                    </div>
+                                    <p class="ent-thread-body">${escapeHtml(ev.message || '')}</p>
+                                </div>
+                            `;
+                        } else if (ev.type === 'approval') {
+                            const ap = ev.ap;
+                            if (ev.sub === 'requested') {
+                                const dueStr = ap.due_at ? new Date(ap.due_at).toLocaleString() : '—';
+                                historyHtml += `
+                                <div class="ent-thread-card ent-thread-card--approval">
+                                    <div class="ent-thread-head">
+                                        <div>
+                                            <div class="ent-thread-role">Manager approval · request</div>
+                                            <div class="ent-thread-author"><i class="bi bi-envelope-check me-1 text-primary"></i>${escapeHtml(ap.requested_by || 'Agent')} <span class="text-muted fw-normal">→ ${escapeHtml(ap.manager_email || '')}</span></div>
+                                        </div>
+                                        <span class="ent-thread-meta">${timeStr}</span>
+                                    </div>
+                                    <div class="ent-thread-body small">
+                                        <div class="mb-1"><strong>Reason:</strong> ${escapeHtml(ap.reason || '—')}</div>
+                                        <div class="mb-1"><strong>Message:</strong> ${escapeHtml(ap.message_to_manager || '—')}</div>
+                                        <div><strong>Due:</strong> ${escapeHtml(dueStr)}</div>
+                                    </div>
+                                </div>`;
+                            } else {
+                                let title = 'Decision';
+                                if (ap.status === 'approved') title = 'Approved by manager';
+                                else if (ap.status === 'rejected') title = 'Rejected';
+                                else if (ap.status === 'rework') title = 'Rework requested';
+                                else if (ap.status === 'cancelled') title = 'Approval cancelled';
+                                historyHtml += `
+                                <div class="ent-thread-card ent-thread-card--approval">
+                                    <div class="ent-thread-head">
+                                        <div>
+                                            <div class="ent-thread-role">Manager approval · outcome</div>
+                                            <div class="ent-thread-author"><i class="bi bi-check2-circle me-1 text-primary"></i>${escapeHtml(title)}</div>
+                                        </div>
+                                        <span class="ent-thread-meta">${timeStr}</span>
+                                    </div>
+                                    <p class="ent-thread-body">${escapeHtml(ap.manager_comment || '—')}</p>
+                                </div>`;
+                            }
+                        } else if (ev.type === 'forward') {
+                            historyHtml += `
+                                <div class="ent-thread-card ent-thread-card--forward">
+                                    <div class="ent-thread-head">
+                                        <div>
+                                            <div class="ent-thread-role">Case forwarded</div>
+                                            <div class="ent-thread-author"><i class="bi bi-envelope-arrow-up me-1 text-primary"></i>${escapeHtml(ev.performed_by || 'Staff')}</div>
+                                        </div>
+                                        <span class="ent-thread-meta">${timeStr}</span>
+                                    </div>
+                                    <p class="ent-thread-body small">${escapeHtml(ev.forwardDetail || '')}</p>
+                                </div>`;
+                        } else {
+                            historyHtml += `
+                                <div class="ent-thread-card ent-thread-card--internal">
+                                    <div class="ent-thread-head">
+                                        <div>
+                                            <div class="ent-thread-role">Internal · privileged</div>
+                                            <div class="ent-thread-author"><i class="bi bi-journal-lock me-1 text-warning"></i>Work note <span class="text-muted fw-normal">· ${escapeHtml(ev.performed_by || 'System')}</span></div>
+                                        </div>
+                                        <span class="ent-thread-meta">${timeStr}</span>
+                                    </div>
+                                    <p class="ent-thread-body">${escapeHtml(ev.action || '')}</p>
+                                </div>
+                            `;
+                        }
+                    });
+
+                    if(allEvents.length === 0) {
+                        historyHtml = '<div class="ent-history-empty"><i class="bi bi-diagram-3 fs-2 text-muted opacity-50 d-block"></i><p class="small text-muted mb-0 mt-2">No thread activity yet. Customer replies and internal notes will appear in chronological order.</p></div>';
+                    }
+
+                    document.getElementById('viewTktHistory').innerHTML = historyHtml;
+                    renderApprovalPanelFromHistory(approvals, ticket);
+                })
+                .catch(err => {
+                    document.getElementById('viewTktHistory').innerHTML = '<div class="ent-history-fail"><i class="bi bi-exclamation-octagon me-2"></i>Unable to load case history. Retry or contact platform operations.</div>';
+                    renderApprovalPanelFromHistory([], ticket);
+                });
+        }
+
+        function uploadAdditionalTicketFiles() {
+            const tktId = document.getElementById('activeTicketId').value;
+            const staff = getStaffEmail();
+            const input = document.getElementById('staffAddAttachInput');
+            if (!tktId || !staff) {
+                showToast('Open a ticket and ensure you are signed in.', 'danger');
+                return;
+            }
+            if (!input || !input.files.length) {
+                showToast('Choose one or more files first.', 'warning');
+                return;
+            }
+            const fd = new FormData();
+            fd.append('staff_email', staff);
+            for (let i = 0; i < input.files.length; i++) fd.append('files', input.files[i]);
+            const base = apiOrigin();
+            fetch(`${base}/api/tickets/${tktId}/attachments`, { method: 'POST', body: fd })
+                .then(async r => {
+                    if (r.status === 413) {
+                        showToast('Upload too large (max 25 MB).', 'danger');
+                        return null;
+                    }
+                    return r.json();
+                })
+                .then(j => {
+                    if (!j || !j.success) {
+                        showToast((j && j.message) || 'Upload failed', 'danger');
+                        return;
+                    }
+                    const t = window.loadedTickets.find(x => String(x.id) === String(tktId));
+                    if (t) {
+                        t.attachments_data = j.attachments_data;
+                        t.attachments_meta = j.attachments_meta;
+                    }
+                    renderTicketAttachments(
+                        document.getElementById('viewTktAttachments'),
+                        t || { id: +tktId, attachments_data: j.attachments_data, attachments_meta: j.attachments_meta }
+                    );
+                    input.value = '';
+                    showToast('Files added to ticket.', 'success');
+                })
+                .catch(() => showToast('Upload failed', 'danger'));
+        }
+
+        async function sendCustomerReply() {
+            const msg = document.getElementById('replyText').value;
+            if (!msg || !String(msg).trim()) {
+                showToast('Response cannot be empty', 'danger');
+                return;
+            }
+            const tktId = document.getElementById('activeTicketId').value;
+            const staff = getStaffEmail();
+            const input = document.getElementById('replyAttachInput');
+            if (input && input.files.length) {
+                if (!staff) {
+                    showToast('Sign in required to attach files.', 'danger');
+                    return;
+                }
+                const fd = new FormData();
+                fd.append('staff_email', staff);
+                for (let i = 0; i < input.files.length; i++) fd.append('files', input.files[i]);
+                const base = apiOrigin();
+                try {
+                    const r = await fetch(`${base}/api/tickets/${tktId}/attachments`, { method: 'POST', body: fd });
+                    if (r.status === 413) {
+                        showToast('Attachments too large (max 25 MB).', 'danger');
+                        return;
+                    }
+                    const j = await r.json();
+                    if (!j.success) {
+                        showToast(j.message || 'Attachment upload failed', 'danger');
+                        return;
+                    }
+                    const t = window.loadedTickets.find(x => String(x.id) === String(tktId));
+                    if (t) {
+                        t.attachments_data = j.attachments_data;
+                        t.attachments_meta = j.attachments_meta;
+                    }
+                    renderTicketAttachments(
+                        document.getElementById('viewTktAttachments'),
+                        t || { id: +tktId, attachments_data: j.attachments_data, attachments_meta: j.attachments_meta }
+                    );
+                    input.value = '';
+                } catch (e) {
+                    showToast('Attachment upload failed', 'danger');
+                    return;
+                }
+            }
+            submitTicketAction('add_reply', msg);
+        }
+
+        function cancelFirstAssignPick() {
+            window.__pendingAssigneeName = null;
+        }
+
+        function onViewSideAssigneeChange(sel) {
+            const v = sel.value;
+            if (!v) return;
+            const tid = document.getElementById('activeTicketId').value;
+            const ticket = window.loadedTickets && window.loadedTickets.find(t => String(t.id) === String(tid));
+            if (ticket && !ticket.assigned_to) {
+                window.__pendingAssigneeName = v;
+                sel.value = '';
+                const etr = document.getElementById('firstAssignETR');
+                const an = document.getElementById('firstAssignAnalysis');
+                const st = document.getElementById('firstAssignStatus');
+                if (etr) etr.value = '1 Day';
+                if (an) an.value = 'We will check and update.';
+                if (st) st.value = '🛠 Working on It';
+                const mEl = document.getElementById('firstAssignAckModal');
+                let m = bootstrap.Modal.getInstance(mEl);
+                if (!m) m = new bootstrap.Modal(mEl);
+                m.show();
+                setTimeout(function () { pdToggleFirstAssignClosureNote(); }, 0);
+                return;
+            }
+            submitTicketAction('assign_custom', v);
+        }
+
+        function pdToggleFirstAssignClosureNote() {
+            const st = document.getElementById('firstAssignStatus');
+            const w = document.getElementById('firstAssignClosureNoteWrap');
+            if (!st || !w) return;
+            const v = (st.value || '').toLowerCase();
+            const need = v.includes('resolved') || v.includes('closed');
+            w.classList.toggle('d-none', !need);
+        }
+
+        function submitFirstAssignAck() {
+            const name = window.__pendingAssigneeName;
+            if (!name) {
+                showToast('No assignee selected', 'warning');
+                return;
+            }
+            const etr = document.getElementById('firstAssignETR');
+            const an = document.getElementById('firstAssignAnalysis');
+            const st = document.getElementById('firstAssignStatus');
+            const stVal = st ? st.value : '';
+            const needNote = stVal.toLowerCase().includes('resolved') || stVal.toLowerCase().includes('closed');
+            const cnEl = document.getElementById('firstAssignClosureNote');
+            const cn = cnEl ? cnEl.value.trim() : '';
+            if (needNote && cn.length < 3) {
+                showToast('Enter a customer resolution note (at least 3 characters) for Resolved or Closed.', 'warning');
+                return;
+            }
+            const mEl = document.getElementById('firstAssignAckModal');
+            const inst = bootstrap.Modal.getInstance(mEl);
+            if (inst) inst.hide();
+            window.__pendingAssigneeName = null;
+            const extras = {
+                expected_resolution: etr ? etr.value : '',
+                primary_analysis: an ? an.value : '',
+                status: stVal
+            };
+            if (needNote) extras.customer_note = cn;
+            submitTicketAction('assign_custom', name, null, extras);
+        }
+
+        function pdStatusIsClosedOrResolved(v) {
+            if (!v) return false;
+            const s = String(v).toLowerCase();
+            return s.includes('resolved') || s.includes('closed');
+        }
+
+        function pdStatusSelectRemember(el) {
+            window.__pdStatusBeforeSelect = el.value;
+        }
+
+        function pdOnActionStatusChange(el) {
+            const v = el.value;
+            if (pdStatusIsClosedOrResolved(v)) {
+                if (window.__pdStatusBeforeSelect != null && window.__pdStatusBeforeSelect !== '') {
+                    el.value = window.__pdStatusBeforeSelect;
+                }
+                pdOpenResolutionNoteModal(v);
+                return;
+            }
+            submitTicketAction('update_status', v);
+        }
+
+        function pdOpenResolutionNoteModal(statusValue) {
+            window.__pdPendingClosureStatus = statusValue;
+            const ta = document.getElementById('resolutionNoteText');
+            if (ta) ta.value = '';
+            const mEl = document.getElementById('resolutionNoteModal');
+            if (!mEl) return;
+            let m = bootstrap.Modal.getInstance(mEl);
+            if (!m) m = new bootstrap.Modal(mEl);
+            m.show();
+        }
+
+        function pdCancelResolutionNote() {
+            const el = document.getElementById('actionStatus');
+            if (el && window.__pdStatusBeforeSelect != null) {
+                el.value = window.__pdStatusBeforeSelect;
+            }
+        }
+
+        function pdConfirmResolutionNote() {
+            const ta = document.getElementById('resolutionNoteText');
+            const note = (ta && ta.value || '').trim();
+            if (note.length < 3) {
+                showToast('Resolution note must be at least 3 characters.', 'warning');
+                return;
+            }
+            const st = window.__pdPendingClosureStatus;
+            const mEl = document.getElementById('resolutionNoteModal');
+            const inst = mEl ? bootstrap.Modal.getInstance(mEl) : null;
+            if (inst) inst.hide();
+            const sel = document.getElementById('actionStatus');
+            if (sel && st) sel.value = st;
+            submitTicketAction('update_status', st, null, { customer_note: note });
+        }
+
+        let __ticketActionInFlight = false;
+
+        function submitTicketAction(actionType, payloadText = '', attachStatus = null, assignExtras = null) {
+            const tktId = document.getElementById('activeTicketId').value;
+            if (!tktId) return;
+            if (__ticketActionInFlight) {
+                showToast('Please wait — the previous action is still processing.', 'warning');
+                return;
+            }
+
+            let payload = { action: actionType };
+            
+            if (actionType === 'update_status') {
+                payload.status = payloadText;
+                if (assignExtras && assignExtras.customer_note) {
+                    payload.customer_note = assignExtras.customer_note;
+                }
+            } else if (actionType === 'add_reply') {
+                if (!payloadText) return showToast("Response cannot be empty", "danger");
+                payload.message = payloadText;
+                if (attachStatus) payload.status = attachStatus;
+            } else if (actionType === 'add_work_log') {
+                if (!payloadText) return showToast("Note cannot be empty", "danger");
+                payload.note = payloadText;
+                payload.worked_time = "5m"; // mock 5 min increment
+                if (attachStatus) payload.status = attachStatus;
+            } else if (actionType === 'assign_custom') {
+                payload.action = 'assign_self';
+                payload.agent = payloadText;
+                if (assignExtras) {
+                    if (assignExtras.expected_resolution != null && assignExtras.expected_resolution !== '') {
+                        payload.expected_resolution = assignExtras.expected_resolution;
+                    }
+                    if (assignExtras.primary_analysis != null && assignExtras.primary_analysis !== '') {
+                        payload.primary_analysis = assignExtras.primary_analysis;
+                    }
+                    if (assignExtras.status) {
+                        payload.status = assignExtras.status;
+                    }
+                    if (assignExtras.customer_note) {
+                        payload.customer_note = assignExtras.customer_note;
+                    }
+                }
+            }
+            if (actionType !== 'assign_custom') {
+                payload.agent = getStaffDisplayName();
+            }
+
+            const apiUrl = window.location.protocol === 'file:' ? `http://127.0.0.1:5000/api/tickets/${tktId}/action` : `/api/tickets/${tktId}/action`;
+
+            __ticketActionInFlight = true;
+            fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(resp => {
+                if (resp.success) {
+                    showToast('Action processed normally.', 'success');
+                    if(actionType === 'add_reply') document.getElementById('replyText').value = '';
+                    if(actionType === 'add_work_log') document.getElementById('noteText').value = '';
+                    __ticketActionInFlight = false;
+                    const q = window.__lastTicketQueue || 'myqueue';
+                    loadTickets(q).then(function () {
+                        const modalEl = document.getElementById('ticketViewModal');
+                        const tid = parseInt(document.getElementById('activeTicketId').value, 10);
+                        if (modalEl && modalEl.classList.contains('show') && tid) {
+                            const t = window.loadedTickets && window.loadedTickets.find(function (x) { return x.id === tid; });
+                            if (t) openTicketModal(tid);
+                        }
+                    });
+                } else {
+                    __ticketActionInFlight = false;
+                    showToast(resp.message || 'Action could not be completed.', 'danger');
+                }
+            })
+            .catch(err => {
+                __ticketActionInFlight = false;
+                console.error(err);
+                showToast('Failed to contact server', 'danger');
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!requireAuthAgent()) return;
+            renderCurrentUser();
+            loadManagerEmailDatalist();
+            loadPortalTicketSettingsForTicketList();
+            const tvm = document.getElementById('ticketViewModal');
+            if (tvm) tvm.addEventListener('hidden.bs.modal', clearApprovalCountdown);
+
+            const cs = document.getElementById('pdContextSearch');
+            if (cs) {
+                cs.addEventListener('input', function () {
+                    const cfg = PD_ROUTE_CONFIG[window.__pdCurrentRoute];
+                    if (cfg && cfg.ticketUi) {
+                        pdSyncSearchToHidden();
+                        applyFilters();
+                    } else if (window.__pdCurrentRoute === 'knowledge-base') {
+                        pdRenderKbFilter();
+                    }
+                });
+                cs.addEventListener('keydown', function (ev) {
+                    if (ev.key === 'Enter' && window.__pdCurrentRoute === 'customer-history') {
+                        ev.preventDefault();
+                        pdRunCustomerLookup();
+                    }
+                });
+            }
+
+            if (!location.hash || !/^#\/agent\/[\w-]+\/?$/.test(location.hash)) {
+                history.replaceState(null, '', (location.pathname || '/') + (location.search || '') + '#/agent/dashboard');
+            }
+            window.addEventListener('hashchange', pdOnHashChange);
+
+            const seedUrl = window.location.protocol === 'file:' ? 'http://127.0.0.1:5000/api/seed' : '/api/seed';
+            fetch(seedUrl, { method: 'POST' })
+                .then(res => res.json())
+                .catch(err => console.error('Seed attempt:', err))
+                .finally(() => {
+                    pdNavigate(pdRouteFromHash(), { replace: true });
+                });
+        });
+
+        function isPrioritySlaRisk(priorityName) {
+            const pri = (window.__portalSlaSettings && window.__portalSlaSettings.sla && window.__portalSlaSettings.sla.priorities) || [];
+            const hot = pri.length >= 3 ? new Set(pri.slice(-3)) : new Set(['Enterprise Critical', 'Urgent', 'High']);
+            return hot.has(priorityName);
+        }
+
+        function applyFilters() {
+            const searchStr = (document.getElementById('filterSearch').value || '').toLowerCase();
+            const priorityStr = document.getElementById('filterPriority').value;
+            const statusStr = document.getElementById('filterStatus').value;
+            const slaRisk = document.getElementById('slaRiskToggle').checked;
+
+            const rows = document.querySelectorAll('.ticket-row');
+            if(rows.length === 0) return;
+            
+            let visibleCount = 0;
+            rows.forEach(row => {
+                let show = true;
+                
+                if (searchStr && !row.dataset.search.includes(searchStr)) {
+                    show = false;
+                }
+                if (priorityStr && row.dataset.priority !== priorityStr) {
+                    show = false;
+                }
+                if (statusStr && !row.dataset.status.includes(statusStr)) {
+                    show = false;
+                }
+                if (slaRisk) {
+                    const cp = row.dataset.priority;
+                    if (!isPrioritySlaRisk(cp)) {
+                        show = false;
+                    }
+                }
+                
+                row.style.display = show ? '' : 'none';
+                if(show) visibleCount++;
+            });
+            
+            // Handle empty state
+            let tbody = document.getElementById('ticketTableBody');
+            let noResultsRow = document.getElementById('noResultsRow');
+            if (visibleCount === 0) {
+                if (!noResultsRow) {
+                    tbody.insertAdjacentHTML('beforeend', '<tr id="noResultsRow"><td colspan="' + pdTicketTableColspan() + '" class="text-center text-muted py-4">No tickets match the current filters.</td></tr>');
+                } else {
+                    noResultsRow.style.display = '';
+                }
+            } else {
+                if(noResultsRow) noResultsRow.style.display = 'none';
+            }
+        }
+
+        function cleanupStrayModalBackdrop() {
+            if (document.querySelector('.modal.show')) return;
+            document.querySelectorAll('.modal-backdrop').forEach(function (el) { el.remove(); });
+            document.body.classList.remove('modal-open');
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('padding-right');
+        }
+        document.addEventListener('hidden.bs.modal', function () {
+            setTimeout(cleanupStrayModalBackdrop, 0);
+        });
+        document.addEventListener('DOMContentLoaded', function () {
+            setTimeout(cleanupStrayModalBackdrop, 0);
+        });
+    </script>
+</body>
+
+</html>

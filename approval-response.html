@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager approval | PerfectDesk 360</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body { font-family: Inter, system-ui, sans-serif; background: linear-gradient(165deg, #f1f5f9, #e0e7ff); min-height: 100vh; }
+        .card-ent { border-radius: 1rem; border: none; box-shadow: 0 16px 48px rgba(79, 70, 229, 0.12); overflow: hidden; }
+        .card-head-ent { background: linear-gradient(90deg, #4f46e5, #7c3aed); color: #fff; padding: 1.25rem 1.5rem; }
+    </style>
+</head>
+<body class="p-3 p-md-5">
+    <div class="mx-auto" style="max-width: 520px;">
+        <div class="card card-ent">
+            <div class="card-head-ent">
+                <h1 class="h5 mb-0 fw-bold"><i class="bi bi-patch-check-fill me-2"></i>Approval response</h1>
+                <p class="small mb-0 mt-2 opacity-90">PerfectDesk 360</p>
+            </div>
+            <div class="card-body p-4" id="mainPanel">
+                <p class="text-muted small mb-0" id="statusText">Loading…</p>
+            </div>
+        </div>
+    </div>
+    <script>
+        function apiOrigin() {
+            return window.location.protocol === 'file:' ? 'http://127.0.0.1:5000' : '';
+        }
+        function qs(name) {
+            const u = new URLSearchParams(window.location.search);
+            return u.get(name) || '';
+        }
+        const approvalId = parseInt(qs('id'), 10);
+        const token = qs('t');
+        const action = (qs('a') || '').toLowerCase();
+        const panel = document.getElementById('mainPanel');
+        const statusText = document.getElementById('statusText');
+
+        function render(msg, html) {
+            statusText.classList.add('d-none');
+            panel.innerHTML = html || '<p class="mb-0">' + msg + '</p>';
+        }
+
+        function postDecision(act, comment) {
+            const base = apiOrigin();
+            return fetch(base + '/api/approval/decision', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    approval_id: approvalId,
+                    token: token,
+                    action: act,
+                    comment: comment || ''
+                })
+            }).then(r => r.json().then(j => ({ ok: r.ok, j })));
+        }
+
+        if (!approvalId || !token || !action) {
+            render(null, '<p class="text-danger mb-0">Invalid link. Open the full URL from your email.</p>');
+        } else if (action === 'approve') {
+            statusText.textContent = 'Confirm approval…';
+            render(null, `
+                <p class="mb-3">You are about to <strong class="text-success">approve</strong> this request.</p>
+                <label class="form-label small fw-semibold">Optional note for the record</label>
+                <textarea class="form-control mb-3" id="cmt" rows="2" placeholder="Optional"></textarea>
+                <button type="button" class="btn btn-success w-100 fw-bold" id="go">Confirm approval</button>
+            `);
+            document.getElementById('go').onclick = function () {
+                this.disabled = true;
+                postDecision('approve', document.getElementById('cmt').value).then(({ ok, j }) => {
+                    if (ok && j.success) {
+                        render(null, '<div class="alert alert-success mb-0">Approved. The ticket has been updated and the agent can continue.</div>');
+                    } else {
+                        render(null, '<div class="alert alert-danger mb-0">' + (j.message || 'Request failed') + '</div>');
+                    }
+                }).catch(() => render(null, '<div class="alert alert-danger mb-0">Network error.</div>'));
+            };
+        } else if (action === 'reject' || action === 'rework') {
+            const verb = action === 'reject' ? 'reject' : 'request rework on';
+            statusText.textContent = '';
+            render(null, `
+                <p class="mb-3">You are about to <strong>${action === 'reject' ? 'reject' : 'request rework for'}</strong> this approval.</p>
+                <label class="form-label small fw-semibold">Comment for the agent <span class="text-danger">*</span></label>
+                <textarea class="form-control mb-3" id="cmt" rows="4" required placeholder="Explain the decision or what needs to change."></textarea>
+                <button type="button" class="btn ${action === 'reject' ? 'btn-danger' : 'btn-warning text-dark'} w-100 fw-bold" id="go">Submit decision</button>
+            `);
+            document.getElementById('go').onclick = function () {
+                const c = (document.getElementById('cmt').value || '').trim();
+                if (c.length < 3) { alert('Please add a comment (at least 3 characters).'); return; }
+                this.disabled = true;
+                postDecision(action, c).then(({ ok, j }) => {
+                    if (ok && j.success) {
+                        render(null, '<div class="alert alert-success mb-0">Your decision has been recorded. The ticket status was updated.</div>');
+                    } else {
+                        render(null, '<div class="alert alert-danger mb-0">' + (j.message || 'Request failed') + '</div>');
+                    }
+                }).catch(() => render(null, '<div class="alert alert-danger mb-0">Network error.</div>'));
+            };
+        } else {
+            render(null, '<p class="text-danger mb-0">Unknown action.</p>');
+        }
+    </script>
+</body>
+</html>

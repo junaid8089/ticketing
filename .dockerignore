@@ -1,0 +1,13 @@
+.git
+.gitignore
+.cursor
+.env
+*.md
+__pycache__
+*.py[cod]
+*.pyo
+.pytest_cache
+.venv
+venv
+uploads
+login_dev_accounts.txt
